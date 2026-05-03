@@ -24,6 +24,7 @@ export interface AITaggerSettings {
     taggingMode: TaggingMode;
     customPrompt: string;
     excludedFolders: string[];
+    excludedTags: string[];
     language: LanguageCode;
     interfaceLanguage: SupportedLanguage;
     predefinedTagsPath: string;
@@ -65,6 +66,7 @@ Generate tags that are:
 
 Prefer technical terms and domain-specific vocabulary when appropriate.`,
     excludedFolders: [],
+    excludedTags: [],
     language: 'default',
     interfaceLanguage: DEFAULT_LANGUAGE,
     predefinedTagsPath: '',

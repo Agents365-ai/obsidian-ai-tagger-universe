@@ -90,6 +90,19 @@ First understand the content, then if needed translate concepts to ${languageNam
         }
     }
 
+    // Excluded tags instructions (LLM-side reinforcement; the deterministic
+    // post-filter in main.ts is what actually guarantees these never appear).
+    const excludedTags = activeSettings?.excludedTags ?? [];
+    let excludedTagsBlock = '';
+    if (excludedTags.length > 0 && mode !== TaggingMode.PredefinedTags) {
+        excludedTagsBlock = `<excluded_tags>
+Never output any of these tags or close variants of them:
+${excludedTags.map(t => `- ${t}`).join('\n')}
+</excluded_tags>
+
+`;
+    }
+
     // Add nested tags instructions if enabled
     if (pluginSettings?.enableNestedTags) {
         const nestedInstructions = `
@@ -155,7 +168,7 @@ Do NOT include explanations, just the comma-separated tag list.
             break;
 
         case TaggingMode.Hybrid:
-            prompt += `${langInstructions}<task>
+            prompt += `${langInstructions}${excludedTagsBlock}<task>
 Analyze the document content and provide relevant tags using a two-part approach:
 1. Select existing tags from the available tag list that match the content (up to ${Math.ceil(maxTags/2)} tags)
 2. Generate new tags for concepts not covered by existing tags (up to ${Math.ceil(maxTags/2)} tags)
@@ -201,7 +214,7 @@ Example of WRONG output (DO NOT DO THIS):
             break;
 
         case TaggingMode.GenerateNew:
-            prompt += `${langInstructions}<task>
+            prompt += `${langInstructions}${excludedTagsBlock}<task>
 Analyze the document content and generate up to ${maxTags} relevant tags that best describe the key topics, themes, and concepts.
 </task>
 
@@ -239,7 +252,7 @@ Do NOT include explanations or additional text, just the comma-separated tag lis
                 throw new Error(`Custom prompt validation failed: ${validationError}`);
             }
 
-            prompt += `${langInstructions}<task>
+            prompt += `${langInstructions}${excludedTagsBlock}<task>
 Analyze the document content and generate up to ${maxTags} relevant tags based on the custom instructions provided below.
 </task>
 

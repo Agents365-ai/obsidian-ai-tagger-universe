@@ -572,6 +572,17 @@ export default class AITaggerPlugin extends Plugin {
                 allTags = [...suggestedTags, ...matchedTags];
             }
 
+            // Deterministic exclusion filter — LLMs are unreliable at "do not
+            // emit X" instructions, so strip excluded tags from the final list.
+            // Compare on a normalized form (lowercase, hyphens/underscores/
+            // spaces collapsed) so 'Meeting Notes' blocks 'meeting-notes' etc.
+            const excluded = this.settings.excludedTags ?? [];
+            if (excluded.length > 0) {
+                const normalize = (s: string) => s.toLowerCase().replace(/[\s_-]+/g, '');
+                const blocked = new Set(excluded.map(normalize));
+                allTags = allTags.filter(t => !blocked.has(normalize(t)));
+            }
+
             if (this.settings.debugMode) {
                 //console.log(`[AI Tagger Debug] Tags before updateNoteTags:`, allTags);
             }

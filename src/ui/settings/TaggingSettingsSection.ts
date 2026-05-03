@@ -419,6 +419,24 @@ export class TaggingSettingsSection extends BaseSettingSection {
             text.inputEl.cols = 50;
         });
 
+        new Setting(this.containerEl)
+            .setName(this.plugin.t.settings.tagging.excludedTags)
+            .setDesc(this.plugin.t.settings.tagging.excludedTagsDesc)
+            .addTextArea(text => {
+                text
+                    .setPlaceholder(this.plugin.t.settings.tagging.excludedTagsPlaceholder)
+                    .setValue(this.plugin.settings.excludedTags.join(', '))
+                    .onChange(async (value) => {
+                        this.plugin.settings.excludedTags = value
+                            .split(/[,\n]/)
+                            .map(t => t.trim())
+                            .filter(Boolean);
+                        await this.plugin.saveSettings();
+                    });
+                text.inputEl.rows = 3;
+                text.inputEl.cols = 50;
+            });
+
         // Tag Behavior Settings
         this.containerEl.createEl('h3', { text: this.plugin.t.settings.tagging.tagBehaviorSettings });
 
