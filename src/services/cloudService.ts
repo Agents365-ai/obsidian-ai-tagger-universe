@@ -92,7 +92,10 @@ export class CloudLLMService extends BaseLLMService {
                 if (response.status === 401) {
                     throw new Error('Authentication failed: Invalid API key');
                 } else if (response.status === 404) {
-                    throw new Error('API endpoint not found: Please verify the URL');
+                    // 404 here is most often an unknown/retired model, not a
+                    // bad URL — the OpenAI-compat endpoints (Gemini, OpenRouter,
+                    // etc.) return 404 when the model name doesn't exist.
+                    throw new Error('HTTP 404: endpoint reachable but the model was not found. Please verify the model name (and the URL).');
                 }
 
                 try {
@@ -139,10 +142,10 @@ export class CloudLLMService extends BaseLLMService {
                         type: "auth",
                         message: "Authentication failed: Please verify your API key"
                     };
-                } else if (error.message.includes('API endpoint not found')) {
+                } else if (error.message.includes('HTTP 404')) {
                     testError = {
                         type: "network",
-                        message: "API endpoint not found: Please verify the URL"
+                        message: "HTTP 404: endpoint reachable but the model was not found. Please verify the model name (and the URL)."
                     };
                 } else {
                     testError = {
