@@ -420,7 +420,7 @@ export default class AITaggerPlugin extends Plugin {
         // Get predefined tags list
         let predefinedTags: string[] = [];
         if (this.settings.tagSourceType === 'file') {
-            const fileTags = await TagUtils.getTagsFromFile(this.app, this.settings.predefinedTagsPath);
+            const fileTags = await TagUtils.getTagsFromFile(this.app, this.settings.predefinedTagsPath, this.settings.tagFormat);
             if (fileTags) {
                 predefinedTags = fileTags;
             }
@@ -456,6 +456,7 @@ export default class AITaggerPlugin extends Plugin {
      * @returns Tag operation result
      */
     public async analyzeAndTagNote(file: TFile, contentOrAnalysis: string | LLMResponse): Promise<TagOperationResult> {
+        //console.log("analyzeAndTagNote >>>");
         try {
             let analysis: LLMResponse;
             
@@ -484,7 +485,7 @@ export default class AITaggerPlugin extends Plugin {
                     case TaggingMode.PredefinedTags:
                         // Get candidate tags (from file or vault)
                         const predefinedTags = this.settings.tagSourceType === 'file'
-                            ? await TagUtils.getTagsFromFile(this.app, this.settings.predefinedTagsPath) || []
+                            ? await TagUtils.getTagsFromFile(this.app, this.settings.predefinedTagsPath, this.settings.tagFormat) || []
                             : TagUtils.getAllTags(this.app);
                         
                         if (!predefinedTags.length) {
@@ -504,9 +505,11 @@ export default class AITaggerPlugin extends Plugin {
 
                     case TaggingMode.Hybrid:
                         // Get candidate tags (from file or vault)
+                        //console.log("analyzeAndTagNote:hybrid:predefined: ", this.settings.predefinedTagsPath);
                         const hybridPredefinedTags = this.settings.tagSourceType === 'file'
-                            ? await TagUtils.getTagsFromFile(this.app, this.settings.predefinedTagsPath) || []
+                            ? await TagUtils.getTagsFromFile(this.app, this.settings.predefinedTagsPath, this.settings.tagFormat) || []
                             : TagUtils.getAllTags(this.app);
+                        //console.log("analyzeAndTagNote:hybrid:hybrid-predefined: ", hybridPredefinedTags);
                         
                         analysis = await this.llmService.analyzeTags(
                             content,
@@ -518,10 +521,12 @@ export default class AITaggerPlugin extends Plugin {
                         break;
                     
                     case TaggingMode.Custom:
+                        //console.log("analyzeAndTagNote:custom:predefined: ", this.settings.predefinedTagsPath);
                         // Get candidate tags (from file or vault)
                         const customPredefinedTags = this.settings.tagSourceType === 'file'
-                            ? await TagUtils.getTagsFromFile(this.app, this.settings.predefinedTagsPath) || []
+                            ? await TagUtils.getTagsFromFile(this.app, this.settings.predefinedTagsPath, this.settings.tagFormat) || []
                             : TagUtils.getAllTags(this.app);
+                        //console.log("analyzeAndTagNote:hybrid:custom-predefined: ", customPredefinedTags);
                         
                         analysis = await this.llmService.analyzeTags(
                             content,
@@ -533,6 +538,7 @@ export default class AITaggerPlugin extends Plugin {
                         break;
                     
                     default:
+                        //console.log("<<< analyzeAndTagNote: unsupported tagging mode");
                         return {
                             success: false,
                             message: `Unsupported tagging mode: ${this.settings.taggingMode}`
@@ -545,6 +551,7 @@ export default class AITaggerPlugin extends Plugin {
             
             // If no analysis results, return failure
             if (!analysis) {
+                //console.log("<<< analyzeAndTagNote: no analysis results available");
                 return {
                     success: false,
                     message: 'No analysis results available'
@@ -566,7 +573,7 @@ export default class AITaggerPlugin extends Plugin {
             }
 
             if (this.settings.debugMode) {
-                console.log(`[AI Tagger Debug] Tags before updateNoteTags:`, allTags);
+                //console.log(`[AI Tagger Debug] Tags before updateNoteTags:`, allTags);
             }
 
             // If there are tags to add, update the note
@@ -582,19 +589,22 @@ export default class AITaggerPlugin extends Plugin {
                 );
 
                 if (this.settings.debugMode) {
-                    console.log(`[AI Tagger Debug] Result from updateNoteTags:`, result);
+                    //console.log(`[AI Tagger Debug] Result from updateNoteTags:`, result);
                 }
 
+                //console.log("<<< analyzeAndTagNote: tags added");
                 return result;
             }
             
             // No tags found
+            //console.log("<<< analyzeAndTagNote: no tags found or generated");
             return {
                 success: false,
                 message: 'No valid tags were found or generated'
             };
         } catch (error) {
             // console.error('Error tagging note:', error);
+            //console.log("<<< analyzeAndTagNote: error tagging note: ", error);
             return {
                 success: false,
                 message: error instanceof Error ? error.message : 'Unknown error occurred'

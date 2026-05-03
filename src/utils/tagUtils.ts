@@ -49,19 +49,32 @@ export interface TagOperationResult {
 
 export class TagUtils {
     /**
+     * Returns the actual tag key present in the frontmatter object,
+     * preferring the casing that already exists ('Tags', 'tags', etc.).
+     * Falls back to 'tags' if neither is present.
+     */
+    static getTagKey(frontmatter: Record<string, any>): string {
+        if (!frontmatter) return 'tags';
+        const found = Object.keys(frontmatter).find(k => k.toLowerCase() === 'tags');
+        return found ?? 'tags';
+    }
+
+    /**
      * Gets existing tags from frontmatter
      * @param frontmatter - The frontmatter object from Obsidian's metadata cache
      * @returns Array of valid tags
      */
     static getExistingTags(frontmatter: { tags?: string | string[] | null } | null): string[] {
         if (!frontmatter) return [];
-        if (!('tags' in frontmatter) || frontmatter.tags === null || frontmatter.tags === undefined) return [];
+        const key = this.getTagKey(frontmatter as Record<string, any>);
+        if (!(key in frontmatter) || (frontmatter as any)[key] === null || (frontmatter as any)[key] === undefined) return [];
 
         try {
-            const tags = Array.isArray(frontmatter.tags) ? 
-                frontmatter.tags : 
-                typeof frontmatter.tags === 'string' ? 
-                    [frontmatter.tags] : 
+            const value = (frontmatter as any)[key];
+            const tags = Array.isArray(value) ?
+                value :
+                typeof value === 'string' ?
+                    [value] :
                     [];
 
             return tags.filter(tag => tag !== null && tag !== undefined)
@@ -224,16 +237,18 @@ export class TagUtils {
                 return { success: true, message: "No valid frontmatter", tags: [] };
             }
             
-            if (!('tags' in frontmatter)) {
+            const tagKey = this.getTagKey(frontmatter);
+            if (!(tagKey in frontmatter)) {
                 return { success: true, message: "No tags to clear", tags: [] };
             }
             
-            const tagsToRemove = Array.isArray(frontmatter.tags) ? 
-                frontmatter.tags.map(String) : 
-                typeof frontmatter.tags === 'string' ? 
-                    [frontmatter.tags] : [];
+            const tagValue = (frontmatter as any)[tagKey];
+            const tagsToRemove = Array.isArray(tagValue) ?
+                tagValue.map(String) :
+                typeof tagValue === 'string' ?
+                    [tagValue] : [];
             
-            delete frontmatter.tags;
+            delete frontmatter[tagKey];
             
             const newFrontmatter = yaml.dump(frontmatter).trim();
             
@@ -293,6 +308,9 @@ export class TagUtils {
         replaceTags: boolean = true,
         tagFormat: TagFormat = 'kebab-case'
     ): Promise<TagOperationResult> {
+        debugLog("updateNoteTags >>>");
+        const err = new Error().stack
+        debugLog("updateNoteTags::: ", err);
         try {
             debugLog(`updateNoteTags called with newTags:`, newTags);
             debugLog(`updateNoteTags called with matchedTags:`, matchedTags);
@@ -310,6 +328,7 @@ export class TagUtils {
 
             if (yamlReadyTags.length === 0) {
                 !silent && new Notice('No valid tags to add', 3000);
+                debugLog("<<< updateNoteTags: no valid tags to add");
                 return { success: true, message: 'No valid tags to add', tags: [] };
             }
 
@@ -321,10 +340,12 @@ export class TagUtils {
                 
                 // If we're not replacing tags, we need to merge with existing ones
                 if (!replaceTags && existingFrontmatter) {
-                    const existingTags = Array.isArray(existingFrontmatter.tags) ? 
-                        existingFrontmatter.tags.map(String) : 
-                        typeof existingFrontmatter.tags === 'string' ? 
-                            [existingFrontmatter.tags] : [];
+                    const existingTagKey = this.getTagKey(existingFrontmatter as Record<string, any>);
+                    const existingTagValue = (existingFrontmatter as any)[existingTagKey];
+                    const existingTags = Array.isArray(existingTagValue) ?
+                        existingTagValue.map(String) :
+                        typeof existingTagValue === 'string' ?
+                            [existingTagValue] : [];
                     
                     // If we have existing tags and we're not replacing, combine them
                     if (existingTags.length > 0) {
@@ -341,6 +362,7 @@ export class TagUtils {
                         const successMessage = `Tags already up to date (${yamlReadyTags.length} tag${yamlReadyTags.length === 1 ? '' : 's'})`;
                         !silent && new Notice(successMessage, 3000);
                         
+                        debugLog("<<< updateNoteTags: tags already up to date");
                         return {
                             success: true,
                             message: successMessage,
@@ -350,6 +372,7 @@ export class TagUtils {
                 }
             } catch (compareError) {
                 //console.error('Error comparing tags:', compareError);
+                debugLog("<<< updateNoteTags: compare error");
             }
             
             try {
@@ -368,10 +391,11 @@ export class TagUtils {
                         frontmatter = yaml.load(frontmatterText) || {};
                     } catch (e) {
                         //console.error('Error parsing frontmatter:', e);
+                        debugLog("updateNoteTags::: error parsing frontmatter");
                         frontmatter = {};
                     }
                     
-                    frontmatter.tags = yamlReadyTags;
+                    frontmatter[TagUtils.getTagKey(frontmatter)] = yamlReadyTags;
                     
                     const newFrontmatter = yaml.dump(frontmatter).trim();
                     
@@ -395,12 +419,14 @@ export class TagUtils {
                 
             } catch (updateError) {
                 //console.error('Error updating frontmatter:', updateError);
+                debugLog("<<< updateNoteTags: failed to update frontmatter", updateError);
                 throw new Error(`Failed to update frontmatter: ${updateError instanceof Error ? updateError.message : String(updateError)}`);
             }
 
             const successMessage = `${replaceTags ? "Replaced" : "Added"} ${yamlReadyTags.length} tag${yamlReadyTags.length === 1 ? '' : 's'}`;
             !silent && new Notice(successMessage, 3000);
 
+            debugLog("<<< updateNoteTags: frontmatter updated successfully");
             return {
                 success: true,
                 message: successMessage,
@@ -408,8 +434,9 @@ export class TagUtils {
             };
         } catch (error) {
             const message = error instanceof Error ? error.message : 'Unknown error';
-            //console.error('Error in updateNoteTags:', error);
+            debugLog('Error in updateNoteTags:', error);
             !silent && new Notice(`Error updating tags: ${message}`, 3000);
+            debugLog("<<< updateNoteTags: update failed");
             return {
                 success: false,
                 message: `Update failed: ${message}`
@@ -470,12 +497,19 @@ export class TagUtils {
      */
     static getAllTagsFromFrontmatter(app: App): string[] {
         const tags = new Set<string>();
+        debugLog("getAllTagsFromFrontmatter >>>");
+        const err = new Error().stack
+        debugLog("getAllTagsFromFrontmatter::: ", err);
+
         app.vault.getMarkdownFiles().forEach((file) => {
             const cache = app.metadataCache.getFileCache(file);
             if (cache?.frontmatter?.tags) {
+                debugLog("getAllTagsFromFrontmatter:tags:1/2:", tags);
                 this.getExistingTags(cache.frontmatter).forEach(tag => tags.add(tag));
+                debugLog("getAllTagsFromFrontmatter:tags:2/2:", tags);
             }
         });
+        debugLog("<<< getAllTagsFromFrontmatter");
         return Array.from(tags).sort();
     }
 
@@ -549,7 +583,7 @@ export class TagUtils {
      * @param filePath - Path to the tags file
      * @returns Promise resolving to an array of tags, or null if file not found
      */
-    static async getTagsFromFile(app: App, filePath: string): Promise<string[] | null> {
+    static async getTagsFromFile(app: App, filePath: string, format: TagFormat = 'kebab-case'): Promise<string[] | null> {
         try {
             if (!filePath) {
                 return null;
@@ -560,12 +594,23 @@ export class TagUtils {
                 return null;
             }
             
-            const content = await app.vault.read(file);
+            let content = await app.vault.read(file);
+
+            // Strip YAML frontmatter (content between opening and closing ---)
+            const frontmatterMatch = content.match(/^---[\r\n][\s\S]*?[\r\n]---[\r\n]/);
+            if (frontmatterMatch) {
+                content = content.slice(frontmatterMatch[0].length);
+            }
+
+            // Only extract markdown list items (lines starting with "- ")
+            // This safely ignores headings, prose, blank lines, and code blocks
             return content
                 .split('\n')
                 .map(line => line.trim())
+                .filter(line => line.startsWith('- '))
+                .map(line => line.slice(2).trim())  // strip the leading "- "
                 .filter(Boolean)
-                .map(tag => this.formatTag(tag));
+                .map(tag => this.formatTag(tag, format));
         } catch (error) {
             //console.error('Error reading tags file:', error);
             return null;
@@ -673,7 +718,7 @@ export class TagUtils {
                     }
                     
                     // Update tags in frontmatter
-                    frontmatter.tags = finalTags;
+                    frontmatter[TagUtils.getTagKey(frontmatter)] = finalTags;
                     
                     // Convert back to YAML
                     const newFrontmatter = yaml.dump(frontmatter).trim();
@@ -881,7 +926,7 @@ export class TagUtils {
                 };
             }
 
-            frontmatter.tags = newTags;
+            frontmatter[TagUtils.getTagKey(frontmatter)] = newTags;
             const newFrontmatter = yaml.dump(frontmatter).trim();
             const newContent =
                 '---\n' +
@@ -1018,7 +1063,7 @@ export class TagUtils {
                     continue;
                 }
 
-                frontmatter.tags = uniqueTags;
+                frontmatter[TagUtils.getTagKey(frontmatter)] = uniqueTags;
                 const newFrontmatter = yaml.dump(frontmatter).trim();
                 const newContent =
                     '---\n' +
