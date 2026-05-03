@@ -503,7 +503,9 @@ export class TagUtils {
 
         app.vault.getMarkdownFiles().forEach((file) => {
             const cache = app.metadataCache.getFileCache(file);
-            if (cache?.frontmatter?.tags) {
+            if (!cache?.frontmatter) return;
+            const tagKey = this.getTagKey(cache.frontmatter);
+            if (cache.frontmatter[tagKey] != null) {
                 debugLog("getAllTagsFromFrontmatter:tags:1/2:", tags);
                 this.getExistingTags(cache.frontmatter).forEach(tag => tags.add(tag));
                 debugLog("getAllTagsFromFrontmatter:tags:2/2:", tags);
@@ -602,13 +604,14 @@ export class TagUtils {
                 content = content.slice(frontmatterMatch[0].length);
             }
 
-            // Only extract markdown list items (lines starting with "- ")
-            // This safely ignores headings, prose, blank lines, and code blocks
+            // Accept either bare-word lines (one tag per line, as written by
+            // saveAllTags) or markdown list items ("- tag"). Skip headings,
+            // code fences, and stray frontmatter delimiters.
             return content
                 .split('\n')
                 .map(line => line.trim())
-                .filter(line => line.startsWith('- '))
-                .map(line => line.slice(2).trim())  // strip the leading "- "
+                .filter(line => line && !line.startsWith('#') && !line.startsWith('```') && line !== '---')
+                .map(line => line.startsWith('- ') ? line.slice(2).trim() : line)
                 .filter(Boolean)
                 .map(tag => this.formatTag(tag, format));
         } catch (error) {
