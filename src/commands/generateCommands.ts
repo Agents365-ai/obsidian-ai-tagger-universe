@@ -15,9 +15,12 @@ export function registerGenerateCommands(plugin: AITaggerPlugin) {
                 new Notice(plugin.t.messages.openNote);
                 return;
             }
+            // Capture target file at command time — view.file mutates if the
+            // user switches notes while the LLM call is in flight (issue #59).
+            const targetFile: TFile = view.file;
 
             const selectedText = editor.getSelection();
-            const content = selectedText || await plugin.app.vault.read(view.file);
+            const content = selectedText || await plugin.app.vault.read(targetFile);
 
             if (!content.trim()) {
                 new Notice(plugin.t.messages.noContentToAnalyze);
@@ -46,7 +49,7 @@ export function registerGenerateCommands(plugin: AITaggerPlugin) {
                 const suggestedTags = analysis.suggestedTags;
                 const matchedTags = analysis.matchedExistingTags || [];
 
-                const result = await TagUtils.updateNoteTags(plugin.app, view.file, suggestedTags, matchedTags, true, plugin.settings.replaceTags, plugin.settings.tagFormat);
+                const result = await TagUtils.updateNoteTags(plugin.app, targetFile, suggestedTags, matchedTags, true, plugin.settings.replaceTags, plugin.settings.tagFormat);
 
                 if (selectedText && result.success) {
                     editor.replaceSelection(selectedText);
