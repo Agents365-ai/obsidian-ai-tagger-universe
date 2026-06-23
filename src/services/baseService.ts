@@ -623,9 +623,12 @@ export abstract class BaseLLMService {
                 }
             }
             
-            // Remove duplicates, sanitize, and ensure strings
+            // Remove duplicates, sanitize, and ensure strings. Drop absurdly
+            // long entries: when a model returns prose/reasoning instead of a
+            // tag list, this text fallback would otherwise turn whole sentences
+            // into single hyphenated tags (issue #61).
             const uniqueTags = [...new Set(tags.map(tag => this.sanitizeTag(tag.toString())))]
-                .filter(tag => tag.length > 0);
+                .filter(tag => tag.length > 0 && tag.length <= 50);
 
             // console.log('Final extracted tags:', uniqueTags);
             return { tags: uniqueTags };
@@ -723,9 +726,26 @@ export abstract class BaseLLMService {
 
             // Send request and get response
             const response = await this.sendRequest(prompt);
-            
+
             // Parse response
-            return this.parseResponse(response, mode, maxTags);
+            const parsed = this.parseResponse(response, mode, maxTags);
+
+            // Predefined mode must never emit tags outside the candidate set.
+            // Weak models sometimes invent tags or echo prompt text as tags
+            // (issue #61), so deterministically intersect the matches with the
+            // candidate list and return the canonical candidate spelling.
+            if (mode === TaggingMode.PredefinedTags) {
+                const normalize = (s: string) => s.toLowerCase().replace(/[\s_-]+/g, '');
+                const canonical = new Map(candidateTags.map(t => [normalize(t), t]));
+                const matched = [...new Set(
+                    (parsed.matchedExistingTags || [])
+                        .map(t => canonical.get(normalize(t)))
+                        .filter((t): t is string => t !== undefined)
+                )];
+                return { matchedExistingTags: matched, suggestedTags: [] };
+            }
+
+            return parsed;
         } catch (error) {
             // Avoid double error handling
             if (error instanceof Error && error.message.startsWith('Tag analysis failed:')) {
