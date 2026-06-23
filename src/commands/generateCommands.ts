@@ -1,7 +1,5 @@
 import { Editor, MarkdownFileInfo, MarkdownView, Menu, Notice, TFile } from 'obsidian';
 import type AITaggerPlugin from '../main';
-import { TagUtils } from '../utils/tagUtils';
-import { TaggingMode } from '../services/prompts/types';
 
 export function registerGenerateCommands(plugin: AITaggerPlugin) {
     // Command to generate tags for current note (with selection support)
@@ -27,29 +25,13 @@ export function registerGenerateCommands(plugin: AITaggerPlugin) {
                 return;
             }
 
-            const existingTags = TagUtils.getAllTags(plugin.app);
             new Notice(plugin.t.messages.analyzing);
 
             try {
-                let maxTags = plugin.settings.tagRangeGenerateMax;
-                if (plugin.settings.taggingMode === TaggingMode.PredefinedTags) {
-                    maxTags = plugin.settings.tagRangePredefinedMax;
-                } else if (plugin.settings.taggingMode === TaggingMode.Hybrid) {
-                    maxTags = plugin.settings.tagRangePredefinedMax + plugin.settings.tagRangeGenerateMax;
-                }
-
-                const analysis = await plugin.llmService.analyzeTags(
-                    content,
-                    existingTags,
-                    plugin.settings.taggingMode,
-                    maxTags,
-                    plugin.settings.language
-                );
-
-                const suggestedTags = analysis.suggestedTags;
-                const matchedTags = analysis.matchedExistingTags || [];
-
-                const result = await TagUtils.updateNoteTags(plugin.app, targetFile, suggestedTags, matchedTags, true, plugin.settings.replaceTags, plugin.settings.tagFormat);
+                // Route through the unified method so every tagging mode is
+                // handled consistently — in particular reading predefined tags
+                // from the configured file/vault source (issue #63).
+                const result = await plugin.analyzeAndTagNote(targetFile, content);
 
                 if (selectedText && result.success) {
                     editor.replaceSelection(selectedText);
