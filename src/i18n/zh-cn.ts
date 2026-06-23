@@ -117,6 +117,7 @@ export const zhCN: Translations = {
         showTagNetwork: "显示标签网络",
         aiTagSelectedNotes: "AI 标记选中的笔记",
         aiTagThisNote: "AI 标记这篇笔记",
+        aiTagThisFolder: "AI 标记此文件夹中的笔记",
         flattenTagsForCurrentNote: "展开当前笔记的层级标签",
         flattenTagsForCurrentFolder: "展开当前文件夹的层级标签",
         flattenTagsForVault: "展开整个库的层级标签",

@@ -117,6 +117,7 @@ export const en: Translations = {
         showTagNetwork: "Show tag network",
         aiTagSelectedNotes: "AI Tag Selected Notes",
         aiTagThisNote: "AI Tag This Note",
+        aiTagThisFolder: "AI Tag Notes in This Folder",
         flattenTagsForCurrentNote: "Flatten hierarchical tags for current note",
         flattenTagsForCurrentFolder: "Flatten hierarchical tags for current folder",
         flattenTagsForVault: "Flatten hierarchical tags for vault",

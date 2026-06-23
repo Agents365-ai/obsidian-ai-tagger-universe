@@ -1,4 +1,4 @@
-import { Editor, MarkdownFileInfo, MarkdownView, Menu, Notice, TFile } from 'obsidian';
+import { Editor, MarkdownFileInfo, MarkdownView, Menu, Notice, TAbstractFile, TFile, TFolder } from 'obsidian';
 import type AITaggerPlugin from '../main';
 
 export function registerGenerateCommands(plugin: AITaggerPlugin) {
@@ -110,7 +110,7 @@ export function registerGenerateCommands(plugin: AITaggerPlugin) {
     // Register file menu items for batch tagging
     plugin.registerEvent(
         // @ts-ignore - File menu event is not properly typed in Obsidian API
-        plugin.app.workspace.on('file-menu', (menu: Menu, file: TFile, source: string, files?: TFile[]) => {
+        plugin.app.workspace.on('file-menu', (menu: Menu, file: TAbstractFile, source: string, files?: TFile[]) => {
             if (files && files.length > 0) {
                 // Multiple files selected
                 const markdownFiles = files.filter(f => f.extension === 'md');
@@ -133,13 +133,35 @@ export function registerGenerateCommands(plugin: AITaggerPlugin) {
                             });
                     });
                 }
-            } else if (file.extension === 'md') {
+            } else if (file instanceof TFile && file.extension === 'md') {
                 // Single file selected
                 menu.addItem((item) => {
                     item
                         .setTitle(plugin.t.commands.aiTagThisNote)
                         .setIcon('tag')
                         .onClick(() => plugin.analyzeAndTagFiles([file]));
+                });
+            } else if (file instanceof TFolder) {
+                // Folder right-clicked — batch tag all markdown notes inside it (issue #62)
+                menu.addItem((item) => {
+                    item
+                        .setTitle(plugin.t.commands.aiTagThisFolder)
+                        .setIcon('tag')
+                        .onClick(async () => {
+                            const filesInFolder = plugin.getNonExcludedMarkdownFilesFromFolder(file);
+                            if (filesInFolder.length === 0) {
+                                new Notice(plugin.t.messages.noMdFiles);
+                                return;
+                            }
+                            const confirmed = await plugin.showConfirmationDialog(
+                                `${plugin.t.messages.generateTagsForFolderConfirm.replace('{count}', String(filesInFolder.length))}`
+                            );
+                            if (!confirmed) {
+                                new Notice(plugin.t.messages.operationCancelled);
+                                return;
+                            }
+                            await plugin.analyzeAndTagFiles(filesInFolder);
+                        });
                 });
             }
         })

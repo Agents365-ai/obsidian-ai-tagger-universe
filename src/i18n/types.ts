@@ -115,6 +115,7 @@ export interface Translations {
         showTagNetwork: string;
         aiTagSelectedNotes: string;
         aiTagThisNote: string;
+        aiTagThisFolder: string;
         flattenTagsForCurrentNote: string;
         flattenTagsForCurrentFolder: string;
         flattenTagsForVault: string;
