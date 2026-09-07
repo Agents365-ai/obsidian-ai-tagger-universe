@@ -1,4 +1,16 @@
-import { LanguageCode } from '../types';
+import { LanguageCode } from "../types";
+
+/**
+ * Boundary type for parsed provider JSON payloads. Adapters validate fields
+ * out of this shape at their trust boundaries before use.
+ */
+export type ParsedJsonValue =
+    | string
+    | number
+    | boolean
+    | null
+    | ParsedJsonValue[]
+    | { [key: string]: ParsedJsonValue };
 
 export interface FetchOptions {
     method: string;

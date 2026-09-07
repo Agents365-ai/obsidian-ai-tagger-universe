@@ -944,6 +944,15 @@
     margin-bottom: var(--size-4-4);
 }
 
+.tag-template-edit-modal .ai-tagger-template-name,
+.tag-template-edit-modal .ai-tagger-template-tags {
+    width: 300px;
+}
+
+.tag-template-edit-modal .ai-tagger-template-tags {
+    height: 80px;
+}
+
 .tag-template-buttons {
     display: flex;
     justify-content: flex-end;
@@ -1146,4 +1155,251 @@
 
 .tag-dedup-close-btn {
     margin-top: var(--size-4-4);
+}
+
+/* Excluded files modal */
+.excluded-files-modal {
+    padding: 20px;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.excluded-files-modal .excluded-files-title {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: var(--text-normal);
+    border-bottom: 1px solid var(--background-modifier-border);
+    padding-bottom: 10px;
+}
+
+.excluded-files-modal .excluded-files-subtitle {
+    margin: 10px 0 15px;
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.excluded-files-modal .excluded-list {
+    margin-bottom: 20px;
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 5px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background-color: var(--background-secondary);
+}
+
+.excluded-files-modal .filter-container {
+    margin-bottom: 20px;
+}
+
+.excluded-files-modal .filter-label {
+    font-weight: bold;
+    margin-bottom: 8px;
+    font-size: 16px;
+}
+
+.excluded-files-modal .filter-input-container {
+    display: flex;
+    position: relative;
+}
+
+.excluded-files-modal .filter-input {
+    flex: 1;
+    padding: 8px 12px;
+    font-size: 14px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background-color: var(--background-primary);
+}
+
+.excluded-files-modal .excluded-files-add-button-container {
+    margin-left: 8px;
+}
+
+.excluded-files-modal .excluded-files-add-button {
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.excluded-files-modal .excluded-files-clear-button {
+    background-color: var(--background-secondary);
+}
+
+.excluded-files-modal .path-dropdown-container {
+    z-index: 1000;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+}
+
+.excluded-files-modal .path-dropdown-item {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.excluded-files-modal .path-dropdown-item:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+.excluded-files-modal .path-item-icon {
+    margin-right: 8px;
+    font-size: 14px;
+    min-width: 20px;
+}
+
+.excluded-files-modal .excluded-item-icon {
+    margin-right: 8px;
+}
+
+.excluded-files-modal .path-use-current {
+    padding: 8px 12px;
+    cursor: pointer;
+    align-items: center;
+    color: var(--text-accent);
+    background-color: var(--background-secondary);
+    border-radius: 4px;
+    margin: 8px;
+}
+
+.excluded-files-modal .path-use-current:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+.excluded-files-modal .path-match-highlight {
+    background-color: var(--text-highlight-bg);
+    border-radius: 2px;
+}
+
+.excluded-files-modal .path-dropdown-empty {
+    padding: 10px;
+    font-size: 14px;
+}
+
+.excluded-files-modal .path-dropdown-more {
+    padding: 6px 10px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-muted);
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+.excluded-files-modal .path-dropdown-error {
+    padding: 10px;
+}
+
+.excluded-files-modal .modal-spacer {
+    flex-grow: 1;
+    min-height: 20px;
+}
+
+.excluded-files-modal .modal-button-container {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    padding: 10px 0;
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+.excluded-files-modal .right-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.excluded-files-modal .excluded-files-action-button {
+    min-width: 80px;
+}
+
+.excluded-files-modal .excluded-empty-message {
+    padding: 10px;
+    color: var(--text-muted);
+    text-align: center;
+    font-style: italic;
+}
+
+.excluded-files-modal .excluded-folder-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 8px;
+    margin: 3px 0;
+    background-color: var(--background-primary);
+    border-radius: 4px;
+    border: 1px solid var(--background-modifier-border);
+}
+
+.excluded-files-modal .excluded-folder-path {
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    flex: 1;
+}
+
+.excluded-files-modal .excluded-folder-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.excluded-files-modal .excluded-folder-remove {
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 18px;
+    padding: 0 4px;
+    margin-left: 4px;
+}
+
+.excluded-files-modal .excluded-folder-remove:hover {
+    color: var(--text-error);
+}
+
+/* Settings notices, tips, and controls */
+.ai-tagger-settings .language-notice {
+    margin-top: 10px;
+    padding: 8px 12px;
+    background-color: var(--background-modifier-info);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    color: var(--text-normal);
+}
+
+.ai-tagger-settings .language-notice-content {
+    display: flex;
+    align-items: center;
+}
+
+.ai-tagger-settings .language-notice-icon {
+    margin-right: 8px;
+}
+
+.ai-tagger-settings .ai-tagger-tips-block {
+    background-color: rgba(100, 100, 100, 0.1);
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    font-size: 0.9em;
+}
+
+.ai-tagger-settings .path-match-highlight {
+    background-color: var(--text-highlight-bg);
+}
+
+.ai-tagger-settings .value-display {
+    margin-left: 10px;
+}
+
+.ai-tagger-settings .path-dropdown-container {
+    z-index: 1000;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.ai-tagger-settings .path-dropdown-item {
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--background-modifier-border-hover);
+}
+
+.ai-tagger-settings .path-item-icon {
+    margin-right: 6px;
+    font-size: 14px;
 }

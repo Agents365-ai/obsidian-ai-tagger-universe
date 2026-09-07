@@ -1,7 +1,7 @@
-import { App, Modal, Notice, TFile } from 'obsidian';
-import { Translations } from '../../i18n/types';
-import { TagTemplate } from '../../core/settings';
-import { TagUtils } from '../../utils/tagUtils';
+import { App, Modal, Notice, TFile } from "obsidian";
+import { Translations } from "../../i18n/types";
+import { TagTemplate } from "../../core/settings";
+import { TagUtils } from "../../utils/tagUtils";
 
 export class TagTemplateApplyModal extends Modal {
     private t: Translations;
@@ -9,7 +9,12 @@ export class TagTemplateApplyModal extends Modal {
     private file: TFile;
     private selectedTemplate: TagTemplate | null = null;
 
-    constructor(app: App, t: Translations, templates: TagTemplate[], file: TFile) {
+    constructor(
+        app: App,
+        t: Translations,
+        templates: TagTemplate[],
+        file: TFile,
+    ) {
         super(app);
         this.t = t;
         this.templates = templates;
@@ -19,52 +24,61 @@ export class TagTemplateApplyModal extends Modal {
     onOpen(): void {
         const { contentEl } = this;
         contentEl.empty();
-        contentEl.addClass('tag-template-apply-modal');
+        contentEl.addClass("tag-template-apply-modal");
 
-        contentEl.createEl('h3', { text: this.t.tagTemplates.applyTemplate });
-        contentEl.createEl('p', {
+        contentEl.createEl("h3", { text: this.t.tagTemplates.applyTemplate });
+        contentEl.createEl("p", {
             text: this.t.tagTemplates.selectTemplate,
-            cls: 'tag-template-description'
+            cls: "tag-template-description",
         });
 
         if (this.templates.length === 0) {
-            contentEl.createEl('p', {
+            contentEl.createEl("p", {
                 text: this.t.tagTemplates.noTemplates,
-                cls: 'tag-template-empty'
+                cls: "tag-template-empty",
             });
             return;
         }
 
-        const listEl = contentEl.createDiv({ cls: 'tag-template-list' });
+        const listEl = contentEl.createDiv({ cls: "tag-template-list" });
 
         for (const template of this.templates) {
-            const itemEl = listEl.createDiv({ cls: 'tag-template-item' });
-            itemEl.addEventListener('click', () => this.selectTemplate(template, itemEl));
+            const itemEl = listEl.createDiv({ cls: "tag-template-item" });
+            itemEl.addEventListener("click", () =>
+                this.selectTemplate(template, itemEl),
+            );
 
-            const nameEl = itemEl.createDiv({ cls: 'tag-template-item-name' });
+            const nameEl = itemEl.createDiv({ cls: "tag-template-item-name" });
             nameEl.setText(template.name);
 
-            const tagsEl = itemEl.createDiv({ cls: 'tag-template-item-tags' });
-            tagsEl.setText(template.tags.map(t => `#${t}`).join(' '));
+            const tagsEl = itemEl.createDiv({ cls: "tag-template-item-tags" });
+            tagsEl.setText(template.tags.map((t) => `#${t}`).join(" "));
         }
 
-        const buttonContainer = contentEl.createDiv({ cls: 'tag-template-buttons' });
-
-        buttonContainer.createEl('button', { text: this.t.tagTemplates.cancel })
-            .addEventListener('click', () => this.close());
-
-        const applyBtn = buttonContainer.createEl('button', {
-            text: this.t.tagTemplates.applyTemplate,
-            cls: 'mod-cta'
+        const buttonContainer = contentEl.createDiv({
+            cls: "tag-template-buttons",
         });
-        applyBtn.addEventListener('click', () => this.handleApply());
+
+        buttonContainer
+            .createEl("button", { text: this.t.tagTemplates.cancel })
+            .addEventListener("click", () => this.close());
+
+        const applyBtn = buttonContainer.createEl("button", {
+            text: this.t.tagTemplates.applyTemplate,
+            cls: "mod-cta",
+        });
+        applyBtn.addEventListener("click", () => {
+            this.handleApply().catch((error) =>
+                console.error("Template apply failed:", error),
+            );
+        });
     }
 
     private selectTemplate(template: TagTemplate, element: HTMLElement): void {
-        this.contentEl.querySelectorAll('.tag-template-item').forEach(el => {
-            el.removeClass('is-selected');
+        this.contentEl.querySelectorAll(".tag-template-item").forEach((el) => {
+            el.removeClass("is-selected");
         });
-        element.addClass('is-selected');
+        element.addClass("is-selected");
         this.selectedTemplate = template;
     }
 
@@ -80,13 +94,13 @@ export class TagTemplateApplyModal extends Modal {
             this.selectedTemplate.tags,
             [], // matchedTags (empty for templates)
             false, // silent
-            false // replaceTags (merge mode)
+            false, // replaceTags (merge mode)
         );
 
         if (result.success) {
             const message = this.t.tagTemplates.templateApplied
-                .replace('{name}', this.selectedTemplate.name)
-                .replace('{count}', String(this.selectedTemplate.tags.length));
+                .replace("{name}", this.selectedTemplate.name)
+                .replace("{count}", String(this.selectedTemplate.tags.length));
             new Notice(message);
             this.close();
         } else {

@@ -1,7 +1,7 @@
-import { App, Modal, ButtonComponent, TextComponent, Notice } from 'obsidian';
-import { Translations } from '../../i18n/types';
-import { TagUtils } from '../../utils/tagUtils';
-import { TagFormat } from '../../core/settings';
+import { App, Modal, ButtonComponent, TextComponent, Notice } from "obsidian";
+import { Translations } from "../../i18n/types";
+import { TagUtils } from "../../utils/tagUtils";
+import { TagFormat } from "../../core/settings";
 
 export class TagRenameModal extends Modal {
     private oldTagInput!: TextComponent;
@@ -10,7 +10,12 @@ export class TagRenameModal extends Modal {
     private tagFormat: TagFormat;
     private onSuccess?: () => void;
 
-    constructor(app: App, t: Translations, tagFormat: TagFormat, onSuccess?: () => void) {
+    constructor(
+        app: App,
+        t: Translations,
+        tagFormat: TagFormat,
+        onSuccess?: () => void,
+    ) {
         super(app);
         this.t = t;
         this.tagFormat = tagFormat;
@@ -20,26 +25,36 @@ export class TagRenameModal extends Modal {
     onOpen(): void {
         const { contentEl } = this;
         contentEl.empty();
-        contentEl.addClass('tag-rename-modal');
+        contentEl.addClass("tag-rename-modal");
 
-        contentEl.createEl('h3', { text: this.t.tagRename.title });
+        contentEl.createEl("h3", { text: this.t.tagRename.title });
 
         // Old tag input
-        const oldTagContainer = contentEl.createDiv({ cls: 'tag-rename-input-group' });
-        oldTagContainer.createEl('label', { text: this.t.tagRename.oldTagLabel });
+        const oldTagContainer = contentEl.createDiv({
+            cls: "tag-rename-input-group",
+        });
+        oldTagContainer.createEl("label", {
+            text: this.t.tagRename.oldTagLabel,
+        });
         this.oldTagInput = new TextComponent(oldTagContainer);
         this.oldTagInput.setPlaceholder(this.t.tagRename.oldTagPlaceholder);
-        this.oldTagInput.inputEl.addClass('tag-rename-input');
+        this.oldTagInput.inputEl.addClass("tag-rename-input");
 
         // New tag input
-        const newTagContainer = contentEl.createDiv({ cls: 'tag-rename-input-group' });
-        newTagContainer.createEl('label', { text: this.t.tagRename.newTagLabel });
+        const newTagContainer = contentEl.createDiv({
+            cls: "tag-rename-input-group",
+        });
+        newTagContainer.createEl("label", {
+            text: this.t.tagRename.newTagLabel,
+        });
         this.newTagInput = new TextComponent(newTagContainer);
         this.newTagInput.setPlaceholder(this.t.tagRename.newTagPlaceholder);
-        this.newTagInput.inputEl.addClass('tag-rename-input');
+        this.newTagInput.inputEl.addClass("tag-rename-input");
 
         // Buttons
-        const buttonContainer = contentEl.createDiv({ cls: 'tag-rename-buttons' });
+        const buttonContainer = contentEl.createDiv({
+            cls: "tag-rename-buttons",
+        });
 
         new ButtonComponent(buttonContainer)
             .setButtonText(this.t.modals.cancel)
@@ -54,9 +69,11 @@ export class TagRenameModal extends Modal {
         this.oldTagInput.inputEl.focus();
 
         // Enter key to submit
-        this.newTagInput.inputEl.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                this.handleRename();
+        this.newTagInput.inputEl.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                this.handleRename().catch((error) =>
+                    console.error("Tag rename failed:", error),
+                );
             }
         });
     }
@@ -70,8 +87,12 @@ export class TagRenameModal extends Modal {
             return;
         }
 
-        const normalizedOld = oldTag.startsWith('#') ? oldTag.substring(1) : oldTag;
-        const normalizedNew = newTag.startsWith('#') ? newTag.substring(1) : newTag;
+        const normalizedOld = oldTag.startsWith("#")
+            ? oldTag.substring(1)
+            : oldTag;
+        const normalizedNew = newTag.startsWith("#")
+            ? newTag.substring(1)
+            : newTag;
 
         if (normalizedOld.toLowerCase() === normalizedNew.toLowerCase()) {
             new Notice(this.t.tagRename.sameTagError);
@@ -85,11 +106,16 @@ export class TagRenameModal extends Modal {
             normalizedOld,
             normalizedNew,
             undefined,
-            this.tagFormat
+            this.tagFormat,
         );
 
         if (result.success) {
-            new Notice(this.t.tagRename.success.replace('{count}', String(result.affectedFiles)));
+            new Notice(
+                this.t.tagRename.success.replace(
+                    "{count}",
+                    String(result.affectedFiles),
+                ),
+            );
             this.onSuccess?.();
             this.close();
         } else {
