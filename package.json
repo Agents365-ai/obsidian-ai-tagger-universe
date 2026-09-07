@@ -1,6 +1,6 @@
 {
   "name": "ai-tagger-universe",
-  "version": "1.0.19",
+  "version": "1.0.20",
   "description": "Automatically analyze note content and add relevant tags using AI (with Chinese interface support)",
   "main": "main.js",
   "scripts": {
@@ -19,15 +19,14 @@
   "author": "Nie Hu",
   "license": "MIT",
   "devDependencies": {
-    "@types/js-yaml": "^4.0.9",
+    "@types/d3": "^7.4.3",
     "@types/node": "^16.11.7",
-    "builtin-modules": "3.3.0",
-    "esbuild": "0.17.3",
+    "esbuild": "^0.28.2",
     "obsidian": "latest",
     "tslib": "2.4.0",
-    "typescript": "^4.7.4"
+    "typescript": "^5.9.3"
   },
   "dependencies": {
-    "js-yaml": "^4.1.0"
+    "d3": "^7.9.0"
   }
 }

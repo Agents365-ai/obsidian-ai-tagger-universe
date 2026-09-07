@@ -1,7 +1,7 @@
-import { App, TFile } from 'obsidian';
-import { TagUtils } from './tagUtils';
+import type { App, TFile } from "obsidian";
+import { TagUtils } from "./tagUtils";
 
-export type SimilarityType = 'abbreviation' | 'case' | 'plural' | 'similar';
+export type SimilarityType = "abbreviation" | "case" | "plural" | "similar";
 
 export interface TagInfo {
     tag: string;
@@ -17,36 +17,36 @@ export interface SimilarTagGroup {
 
 // Common abbreviation mappings
 const ABBREVIATIONS: Record<string, string[]> = {
-    'machine-learning': ['ml'],
-    'artificial-intelligence': ['ai'],
-    'javascript': ['js'],
-    'typescript': ['ts'],
-    'python': ['py'],
-    'database': ['db'],
-    'application': ['app'],
-    'configuration': ['config', 'cfg'],
-    'development': ['dev'],
-    'production': ['prod'],
-    'environment': ['env'],
-    'documentation': ['docs', 'doc'],
-    'authentication': ['auth'],
-    'authorization': ['authz'],
-    'repository': ['repo'],
-    'information': ['info'],
-    'programming': ['prog'],
-    'infrastructure': ['infra'],
-    'kubernetes': ['k8s'],
-    'continuous-integration': ['ci'],
-    'continuous-deployment': ['cd'],
-    'user-interface': ['ui'],
-    'user-experience': ['ux'],
-    'application-programming-interface': ['api'],
-    'natural-language-processing': ['nlp'],
-    'deep-learning': ['dl'],
-    'reinforcement-learning': ['rl'],
-    'operating-system': ['os'],
-    'object-oriented-programming': ['oop'],
-    'functional-programming': ['fp'],
+    "machine-learning": ["ml"],
+    "artificial-intelligence": ["ai"],
+    javascript: ["js"],
+    typescript: ["ts"],
+    python: ["py"],
+    database: ["db"],
+    application: ["app"],
+    configuration: ["config", "cfg"],
+    development: ["dev"],
+    production: ["prod"],
+    environment: ["env"],
+    documentation: ["docs", "doc"],
+    authentication: ["auth"],
+    authorization: ["authz"],
+    repository: ["repo"],
+    information: ["info"],
+    programming: ["prog"],
+    infrastructure: ["infra"],
+    kubernetes: ["k8s"],
+    "continuous-integration": ["ci"],
+    "continuous-deployment": ["cd"],
+    "user-interface": ["ui"],
+    "user-experience": ["ux"],
+    "application-programming-interface": ["api"],
+    "natural-language-processing": ["nlp"],
+    "deep-learning": ["dl"],
+    "reinforcement-learning": ["rl"],
+    "operating-system": ["os"],
+    "object-oriented-programming": ["oop"],
+    "functional-programming": ["fp"],
 };
 
 export class TagDeduplicationUtils {
@@ -76,12 +76,13 @@ export class TagDeduplicationUtils {
                     const info2 = tagInfoMap.get(tag2)!;
 
                     // Suggest the more frequently used tag as target
-                    const suggestedTarget = info1.count >= info2.count ? tag1 : tag2;
+                    const suggestedTarget =
+                        info1.count >= info2.count ? tag1 : tag2;
 
                     groups.push({
                         tags: [info1, info2],
                         similarityType: similarity,
-                        suggestedTarget
+                        suggestedTarget,
                     });
 
                     processed.add(tag1);
@@ -130,17 +131,20 @@ export class TagDeduplicationUtils {
 
         // Case difference (e.g., "JavaScript" vs "javascript")
         if (norm1 === norm2 && tag1 !== tag2) {
-            return 'case';
+            return "case";
         }
 
         // Abbreviation check
-        if (this.isAbbreviation(tag1, tag2) || this.isAbbreviation(tag2, tag1)) {
-            return 'abbreviation';
+        if (
+            this.isAbbreviation(tag1, tag2) ||
+            this.isAbbreviation(tag2, tag1)
+        ) {
+            return "abbreviation";
         }
 
         // Plural form check (e.g., "tag" vs "tags")
         if (this.isPlural(tag1, tag2) || this.isPlural(tag2, tag1)) {
-            return 'plural';
+            return "plural";
         }
 
         // Levenshtein distance for similar spelling
@@ -150,14 +154,14 @@ export class TagDeduplicationUtils {
 
         // Consider similar if >= 80% similar and at least 4 chars
         if (similarity >= 0.8 && maxLen >= 4) {
-            return 'similar';
+            return "similar";
         }
 
         return null;
     }
 
     private normalize(tag: string): string {
-        return tag.toLowerCase().replace(/[-_]/g, '');
+        return tag.toLowerCase().replace(/[-_]/g, "");
     }
 
     private isAbbreviation(full: string, abbr: string): boolean {
@@ -175,7 +179,7 @@ export class TagDeduplicationUtils {
         // Check if abbr could be first letters of hyphenated words
         const parts = full.toLowerCase().split(/[-_]/);
         if (parts.length > 1) {
-            const initials = parts.map(p => p[0]).join('');
+            const initials = parts.map((p) => p[0]).join("");
             if (initials === normAbbr) {
                 return true;
             }
@@ -189,10 +193,13 @@ export class TagDeduplicationUtils {
         const normPlural = this.normalize(plural);
 
         // Simple plural rules
-        if (normPlural === normSingular + 's') return true;
-        if (normPlural === normSingular + 'es') return true;
-        if (normSingular.endsWith('y') &&
-            normPlural === normSingular.slice(0, -1) + 'ies') return true;
+        if (normPlural === normSingular + "s") return true;
+        if (normPlural === normSingular + "es") return true;
+        if (
+            normSingular.endsWith("y") &&
+            normPlural === normSingular.slice(0, -1) + "ies"
+        )
+            return true;
 
         return false;
     }
@@ -200,7 +207,9 @@ export class TagDeduplicationUtils {
     private levenshteinDistance(str1: string, str2: string): number {
         const m = str1.length;
         const n = str2.length;
-        const dp: number[][] = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
+        const dp: number[][] = Array.from({ length: m + 1 }, () =>
+            Array.from({ length: n + 1 }, () => 0),
+        );
 
         for (let i = 0; i <= m; i++) dp[i][0] = i;
         for (let j = 0; j <= n; j++) dp[0][j] = j;
@@ -210,11 +219,13 @@ export class TagDeduplicationUtils {
                 if (str1[i - 1] === str2[j - 1]) {
                     dp[i][j] = dp[i - 1][j - 1];
                 } else {
-                    dp[i][j] = 1 + Math.min(
-                        dp[i - 1][j],     // deletion
-                        dp[i][j - 1],     // insertion
-                        dp[i - 1][j - 1]  // substitution
-                    );
+                    dp[i][j] =
+                        1 +
+                        Math.min(
+                            dp[i - 1][j], // deletion
+                            dp[i][j - 1], // insertion
+                            dp[i - 1][j - 1], // substitution
+                        );
                 }
             }
         }

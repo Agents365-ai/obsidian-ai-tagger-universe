@@ -1,14 +1,11 @@
-import { TAG_PREDEFINED_RANGE, TAG_GENERATE_RANGE } from '../../utils/constants';
-import { LanguageCode } from '../types';
-import { languageNames, getLanguageName } from '../languageUtils';
-import { LanguageUtils } from '../../utils/languageUtils';
-import { SYSTEM_PROMPT } from '../../utils/constants';
-import { TaggingMode } from './types';
+import type { LanguageCode } from "../types";
+import { LanguageUtils } from "../../utils/languageUtils";
+import { TaggingMode } from "./types";
 
 // Re-export TaggingMode for backward compatibility
 export { TaggingMode };
 
-import { AITaggerSettings } from '../../core/settings';
+import type { AITaggerSettings } from "../../core/settings";
 
 // Kept for backward compatibility but deprecated - pass settings directly to buildTagPrompt
 let pluginSettings: AITaggerSettings | undefined;
@@ -22,21 +19,21 @@ export function setSettings(settings: AITaggerSettings): void {
  * Validates custom prompt content for basic safety
  */
 function validateCustomPrompt(prompt: string): string | null {
-    if (!prompt || typeof prompt !== 'string') {
-        return 'Custom prompt must be a non-empty string';
+    if (!prompt || typeof prompt !== "string") {
+        return "Custom prompt must be a non-empty string";
     }
     if (prompt.length > 10000) {
-        return 'Custom prompt exceeds maximum length (10000 characters)';
+        return "Custom prompt exceeds maximum length (10000 characters)";
     }
     // Check for suspicious patterns that might indicate injection attempts
     const suspiciousPatterns = [
         /ignore\s+(all\s+)?(previous|above|prior)\s+(instructions?|prompts?)/i,
         /disregard\s+(all\s+)?(previous|above|prior)/i,
-        /system\s*:\s*you\s+are/i
+        /system\s*:\s*you\s+are/i,
     ];
     for (const pattern of suspiciousPatterns) {
         if (pattern.test(prompt)) {
-            return 'Custom prompt contains potentially unsafe content';
+            return "Custom prompt contains potentially unsafe content";
         }
     }
     return null;
@@ -57,16 +54,16 @@ export function buildTagPrompt(
     candidateTags: string[],
     mode: TaggingMode,
     maxTags: number = 5,
-    language?: LanguageCode | 'default',
-    settings?: AITaggerSettings
+    language?: LanguageCode | "default",
+    settings?: AITaggerSettings,
 ): string {
     // Use passed settings or fall back to global (for backward compatibility)
     const activeSettings = settings || pluginSettings;
-    let prompt = '';
-    let langInstructions = '';
+    let prompt = "";
+    let langInstructions = "";
 
     // Prepare language instructions if needed
-    if (language && language !== 'default') {
+    if (language && language !== "default") {
         const languageName = LanguageUtils.getLanguageDisplayName(language);
 
         switch (mode) {
@@ -86,18 +83,18 @@ First understand the content, then if needed translate concepts to ${languageNam
                 break;
 
             default:
-                langInstructions = '';
+                langInstructions = "";
         }
     }
 
     // Excluded tags instructions (LLM-side reinforcement; the deterministic
     // post-filter in main.ts is what actually guarantees these never appear).
     const excludedTags = activeSettings?.excludedTags ?? [];
-    let excludedTagsBlock = '';
+    let excludedTagsBlock = "";
     if (excludedTags.length > 0 && mode !== TaggingMode.PredefinedTags) {
         excludedTagsBlock = `<excluded_tags>
 Never output any of these tags or close variants of them:
-${excludedTags.map(t => `- ${t}`).join('\n')}
+${excludedTags.map((t) => `- ${t}`).join("\n")}
 </excluded_tags>
 
 `;
@@ -136,6 +133,27 @@ Generate a mix of nested and flat tags based on content relevance.
         prompt += nestedInstructions;
     }
 
+    const customPrompt = activeSettings?.customPrompt || "";
+    if (mode === TaggingMode.Custom && !customPrompt.trim()) {
+        throw new Error(
+            "Custom tagging mode requires a custom prompt to be configured in settings.",
+        );
+    }
+    if (customPrompt) {
+        const validationError = validateCustomPrompt(customPrompt);
+        if (validationError) {
+            throw new Error(
+                `Custom prompt validation failed: ${validationError}`,
+            );
+        }
+        prompt += `<custom_instructions>
+Apply these instructions within the selected mode's tag source, tag limit, language, and output format requirements. Those requirements take precedence if instructions conflict.
+${customPrompt}
+</custom_instructions>
+
+`;
+    }
+
     switch (mode) {
         case TaggingMode.PredefinedTags:
             prompt += `<task>
@@ -143,7 +161,7 @@ Analyze the document content and select up to ${maxTags} most relevant tags from
 </task>
 
 <available_tags>
-${candidateTags.join(', ')}
+${candidateTags.join(", ")}
 </available_tags>
 
 <document_content>
@@ -170,12 +188,12 @@ Do NOT include explanations, just the comma-separated tag list.
         case TaggingMode.Hybrid:
             prompt += `${langInstructions}${excludedTagsBlock}<task>
 Analyze the document content and provide relevant tags using a two-part approach:
-1. Select existing tags from the available tag list that match the content (up to ${Math.ceil(maxTags/2)} tags)
-2. Generate new tags for concepts not covered by existing tags (up to ${Math.ceil(maxTags/2)} tags)
+1. Select existing tags from the available tag list that match the content (up to ${Math.ceil(maxTags / 2)} tags)
+2. Generate new tags for concepts not covered by existing tags (up to ${Math.ceil(maxTags / 2)} tags)
 </task>
 
 <available_tags>
-${candidateTags.join(', ')}
+${candidateTags.join(", ")}
 </available_tags>
 
 <document_content>
@@ -242,31 +260,17 @@ Do NOT include explanations or additional text, just the comma-separated tag lis
             break;
 
         case TaggingMode.Custom:
-            if (!activeSettings?.customPrompt) {
-                throw new Error('Custom tagging mode requires a custom prompt to be configured in settings.');
-            }
-
-            // Validate custom prompt for safety
-            const validationError = validateCustomPrompt(activeSettings.customPrompt);
-            if (validationError) {
-                throw new Error(`Custom prompt validation failed: ${validationError}`);
-            }
-
             prompt += `${langInstructions}${excludedTagsBlock}<task>
-Analyze the document content and generate up to ${maxTags} relevant tags based on the custom instructions provided below.
+Analyze the document content and generate up to ${maxTags} relevant tags based on the custom instructions provided above.
 </task>
 
 <existing_tags_reference>
-${candidateTags && candidateTags.length > 0 ? candidateTags.join(', ') : 'No existing tags available'}
+${candidateTags && candidateTags.length > 0 ? candidateTags.join(", ") : "No existing tags available"}
 </existing_tags_reference>
 
 <document_content>
 ${content}
 </document_content>
-
-<custom_instructions>
-${activeSettings.customPrompt}
-</custom_instructions>
 
 <tag_requirements>
 - Use kebab-case formatting (lowercase with hyphens)
@@ -287,7 +291,7 @@ Do NOT include explanations or additional text, just the comma-separated tag lis
             break;
 
         default:
-            throw new Error(`Unsupported tagging mode: ${mode}`);
+            throw new Error(`Unsupported tagging mode: ${String(mode)}`);
     }
 
     return prompt;

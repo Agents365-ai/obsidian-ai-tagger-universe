@@ -1,4 +1,4 @@
-import { Translations } from './types';
+import { Translations } from "./types";
 
 export const zhCN: Translations = {
     // 设置部分
@@ -14,9 +14,11 @@ export const zhCN: Translations = {
             modelName: "模型名称",
             modelNameDesc: "输入您要使用的模型名称",
             temperature: "温度（覆盖）",
-            temperatureDesc: "留空为自动（使用各 Provider 默认值）。设置为 0 可尽量获得更可重复的输出。",
+            temperatureDesc:
+                "留空为自动（使用各 Provider 默认值）。设置为 0 可尽量获得更可重复的输出。",
             temperaturePlaceholder: "自动",
-            temperatureInvalid: "温度无效：请输入 0 到 2 之间的数字，或留空为自动。",
+            temperatureInvalid:
+                "温度无效：请输入 0 到 2 之间的数字，或留空为自动。",
             apiEndpoint: "API 端点",
             apiEndpointDesc: "输入 API 端点 URL",
             apiKey: "API 密钥",
@@ -31,7 +33,7 @@ export const zhCN: Translations = {
             debugModeDesc: "启用调试模式以获取详细日志信息",
             debugEnabled: "调试模式已启用",
             debugDisabled: "调试模式已禁用",
-            tipsPopularTools: "流行工具提示"
+            tipsPopularTools: "流行工具提示",
         },
         tagging: {
             title: "标签设置",
@@ -51,26 +53,32 @@ export const zhCN: Translations = {
             predefinedTagsFileDesc: "包含预定义标签的文件路径（每行一个标签）",
             fileExclusion: "文件排除",
             excludedFiles: "排除的文件和文件夹",
-            excludedFilesDesc: "匹配这些模式的文件将在搜索、关系图谱和未链接提及中隐藏，在快速切换器和链接建议中不那么显眼。",
+            excludedFilesDesc:
+                "匹配这些模式的文件将在搜索、关系图谱和未链接提及中隐藏，在快速切换器和链接建议中不那么显眼。",
             manage: "管理",
             noExclusions: "未配置排除规则",
             patternsConfigured: "个模式已配置",
             tagRangeSettings: "标签范围设置",
             maxPredefinedTags: "最大预定义标签数",
-            maxPredefinedTagsDesc: "要使用的最大预定义标签数量（0-10）。用于预定义和混合模式。",
+            maxPredefinedTagsDesc:
+                "要使用的最大预定义标签数量（0-10）。用于预定义和混合模式。",
             maxGeneratedTags: "最大生成标签数",
-            maxGeneratedTagsDesc: "要生成的最大新标签数量（0-10）。用于生成和混合模式。",
+            maxGeneratedTagsDesc:
+                "要生成的最大新标签数量（0-10）。用于生成和混合模式。",
             outputLanguage: "输出语言",
             outputLanguageDesc: "生成标签的语言",
             customPrompt: "自定义提示",
-            customPromptDesc: "定义标签生成的自定义指令。已提供默认提示作为起始模板，您可以根据需要修改它。",
+            customPromptDesc:
+                "附加指令适用于所有标签模式，仍须遵守所选模式的标签来源、数量、语言及输出格式要求。留空仅使用内置指令（自定义模式下必填）。",
             pathPlaceholder: "输入路径或模式...",
             customPromptPlaceholder: "修改默认提示或编写您自己的指令...",
             nestedTagsSettings: "嵌套标签设置",
             enableNestedTags: "启用嵌套标签",
-            enableNestedTagsDesc: "使用正斜杠生成层级标签（例如：科学/生物学）。这将在标签之间创建父子关系。",
+            enableNestedTagsDesc:
+                "使用正斜杠生成层级标签（例如：科学/生物学）。这将在标签之间创建父子关系。",
             nestedTagsMaxDepth: "最大嵌套深度",
-            nestedTagsMaxDepthDesc: "嵌套的最大层级数（1-3）。示例：深度为 2 允许 父/子 结构，深度为 3 允许 父/子/孙 结构。",
+            nestedTagsMaxDepthDesc:
+                "嵌套的最大层级数（1-3）。示例：深度为 2 允许 父/子 结构，深度为 3 允许 父/子/孙 结构。",
             tagFormatSettings: "标签格式设置",
             tagFormat: "标签格式",
             tagFormatDesc: "选择生成标签的命名规范。",
@@ -81,25 +89,28 @@ export const zhCN: Translations = {
             tagFormatOriginal: "原样保留（不转换格式）",
             tagBehaviorSettings: "标签行为设置",
             preserveExistingTags: "保留现有标签",
-            preserveExistingTagsDesc: "启用时，AI 生成的标签将与笔记中的现有标签合并。禁用时，现有标签将被 AI 生成的标签完全替换。",
+            preserveExistingTagsDesc:
+                "启用时，AI 生成的标签将与笔记中的现有标签合并。禁用时，现有标签将被 AI 生成的标签完全替换。",
             excludedTags: "排除标签",
-            excludedTagsDesc: "在此列出的标签将从所有 LLM 响应中移除，与模式无关。使用逗号或换行分隔。匹配不区分大小写，并忽略空格和连字符（例如 'Meeting Notes' 会屏蔽 'meeting-notes'）。",
+            excludedTagsDesc:
+                "在此列出的标签将从所有 LLM 响应中移除，与模式无关。使用逗号或换行分隔。匹配不区分大小写，并忽略空格和连字符（例如 'Meeting Notes' 会屏蔽 'meeting-notes'）。",
             excludedTagsPlaceholder: "meeting, meeting-notes, agenda",
             requestTimeout: "请求超时（秒）",
-            requestTimeoutDesc: "等待 LLM 响应的最大时间。对于较慢的模型或大型文档，可增加此值。",
+            requestTimeoutDesc:
+                "等待 LLM 响应的最大时间。对于较慢的模型或大型文档，可增加此值。",
         },
         support: {
             title: "支持",
             description: "如果您觉得这个插件有用，请考虑支持我",
             supportText: "如果您觉得这个插件有用，请考虑支持我",
             buyMeACoffee: "请我喝咖啡",
-            buyCoffee: "请我喝咖啡"
+            buyCoffee: "请我喝咖啡",
         },
         interface: {
             title: "界面",
             language: "语言",
-            languageDesc: "选择您的首选界面语言"
-        }
+            languageDesc: "选择您的首选界面语言",
+        },
     },
 
     // 命令
@@ -127,7 +138,7 @@ export const zhCN: Translations = {
         exportTagsJSON: "导出标签为 JSON",
         importTags: "从文件导入标签",
         applyTagTemplate: "应用标签模板",
-        deduplicateTags: "查找并合并相似标签"
+        deduplicateTags: "查找并合并相似标签",
     },
 
     // 消息和通知
@@ -168,9 +179,12 @@ export const zhCN: Translations = {
         noMarkdownFilesFound: "未找到 Markdown 文件",
         noContentToAnalyze: "没有内容可分析",
         failedToGenerateTags: "生成标签失败",
-        generateTagsForFolderConfirm: "确定要为当前文件夹中的所有 Markdown 文件生成标签吗？对于包含多个文件的文件夹，这可能需要一些时间。",
-        generateTagsForVaultConfirm: "确定要为库中的所有 Markdown 文件生成标签吗？这可能需要很长时间，具体取决于库的大小。",
-        generateTagsForSelectedConfirm: "确定要为选定的 {count} 个文件生成标签吗？这可能需要一些时间。",
+        generateTagsForFolderConfirm:
+            "确定要为当前文件夹中的所有 Markdown 文件生成标签吗？对于包含多个文件的文件夹，这可能需要一些时间。",
+        generateTagsForVaultConfirm:
+            "确定要为库中的所有 Markdown 文件生成标签吗？这可能需要很长时间，具体取决于库的大小。",
+        generateTagsForSelectedConfirm:
+            "确定要为选定的 {count} 个文件生成标签吗？这可能需要一些时间。",
         generateTagsInProgress: "分析 {current}/{total} 个文件...",
         tagsGeneratedSuccessfully: "成功为 {success}/{total} 个文件生成标签",
         failedToGenerateForFiles: "生成标签时出错",
@@ -178,7 +192,8 @@ export const zhCN: Translations = {
         completedPrefix: "完成: {success}/{total}",
         restartRequired: "更改语言后需要重启 Obsidian",
         languageChangeNotice: "语言已更改。请重启 Obsidian 以使更改生效。",
-        clearTagsForFolderConfirm: "确定要清除当前文件夹中 {count} 个文件的标签吗？",
+        clearTagsForFolderConfirm:
+            "确定要清除当前文件夹中 {count} 个文件的标签吗？",
         tagsClearedFrom: "已从 {count} 个文件中清除标签",
         failedToClearTags: "清除标签失败",
         noTagsInVault: "库中没有找到标签",
@@ -190,12 +205,15 @@ export const zhCN: Translations = {
         errorLoadingFiles: "加载文件时出错",
         noActiveFile: "没有活动文件",
         noPredefinedTagsFound: "没有找到预定义标签",
-        flattenTagsConfirm: "这将把层级标签（如 a/b/c）转换为独立标签（a、b、c）。继续吗？",
-        flattenTagsForFolderConfirm: "要展开当前文件夹中 {count} 个文件的层级标签吗？",
-        flattenTagsForVaultConfirm: "要展开整个库中所有文件的层级标签吗？这可能需要一些时间。",
+        flattenTagsConfirm:
+            "这将把层级标签（如 a/b/c）转换为独立标签（a、b、c）。继续吗？",
+        flattenTagsForFolderConfirm:
+            "要展开当前文件夹中 {count} 个文件的层级标签吗？",
+        flattenTagsForVaultConfirm:
+            "要展开整个库中所有文件的层级标签吗？这可能需要一些时间。",
         flatteningTags: "正在展开标签...",
         tagsFlattenedSuccessfully: "已展开 {count} 个文件中的标签",
-        noHierarchicalTags: "未找到层级标签"
+        noHierarchicalTags: "未找到层级标签",
     },
 
     // 模态对话框
@@ -204,9 +222,12 @@ export const zhCN: Translations = {
         confirm: "确认",
         cancel: "取消",
         clearAllTagsConfirm: "确定要清除所有笔记的所有标签吗？此操作无法撤销。",
-        generateFolderConfirm: "确定要为当前文件夹中的所有 Markdown 文件生成标签吗？对于包含多个文件的文件夹，这可能需要一些时间。",
-        generateVaultConfirm: "确定要为库中的所有 Markdown 文件生成标签吗？这可能需要很长时间，具体取决于库的大小。",
-        generateSelectedConfirm: "确定要为选定的 {count} 个文件生成标签吗？这可能需要一些时间。",
+        generateFolderConfirm:
+            "确定要为当前文件夹中的所有 Markdown 文件生成标签吗？对于包含多个文件的文件夹，这可能需要一些时间。",
+        generateVaultConfirm:
+            "确定要为库中的所有 Markdown 文件生成标签吗？这可能需要很长时间，具体取决于库的大小。",
+        generateSelectedConfirm:
+            "确定要为选定的 {count} 个文件生成标签吗？这可能需要一些时间。",
         saveTagsConfirm: "这将用所有唯一的标签覆盖文件内容。继续吗？",
         excludedFilesTitle: "排除的文件",
         excludedFilesSubtitle: "匹配以下过滤器的文件当前将被排除：",
@@ -216,17 +237,17 @@ export const zhCN: Translations = {
         cancelButton: "取消",
         saveButton: "保存",
         noMatchingPaths: "未找到匹配路径",
-        useAsPattern: "使用 \"{searchTerm}\" 作为模式",
+        useAsPattern: '使用 "{searchTerm}" 作为模式',
         moreResults: "更多结果...",
         errorLoadingPaths: "加载路径时出错",
         noExclusionsDefined: "尚未定义排除规则",
         filterLabel: "筛选",
-        pathPlaceholder: "输入路径或 \"/regex/\""
+        pathPlaceholder: '输入路径或 "/regex/"',
     },
 
     // 文件菜单项
     fileMenu: {
-        tagNetwork: "标签网络"
+        tagNetwork: "标签网络",
     },
 
     // 下拉选项
@@ -254,7 +275,7 @@ export const zhCN: Translations = {
         localai: "LocalAI",
         lmStudio: "LM Studio",
         jan: "Jan",
-        koboldcpp: "KoboldCpp"
+        koboldcpp: "KoboldCpp",
     },
 
     // 提示
@@ -263,7 +284,7 @@ export const zhCN: Translations = {
         localai: "确保 LocalAI 正在运行并且配置了正确的端点",
         lmStudio: "确保 LM Studio 正在运行并且服务器已启用",
         jan: "确保 Jan 正在运行并且本地服务器已激活",
-        koboldcpp: "确保 KoboldCpp 正在运行并且 API 端点可访问"
+        koboldcpp: "确保 KoboldCpp 正在运行并且 API 端点可访问",
     },
 
     // 标签导入导出
@@ -276,9 +297,10 @@ export const zhCN: Translations = {
         modeReplace: "替换现有标签",
         import: "导入",
         importing: "导入中...",
-        importSuccess: "标签已导入：{success} 个文件更新，{skipped} 个跳过，{failed} 个失败",
+        importSuccess:
+            "标签已导入：{success} 个文件更新，{skipped} 个跳过，{failed} 个失败",
         importError: "导入失败",
-        noFileSelected: "请选择文件"
+        noFileSelected: "请选择文件",
     },
 
     // 标签重命名
@@ -292,7 +314,7 @@ export const zhCN: Translations = {
         renaming: "重命名中...",
         success: "已在 {count} 个文件中重命名标签",
         noTagSpecified: "请输入原标签名和新标签名",
-        sameTagError: "原标签名和新标签名相同"
+        sameTagError: "原标签名和新标签名相同",
     },
 
     // 标签分析视图
@@ -321,7 +343,7 @@ export const zhCN: Translations = {
         noOrphanedTags: "没有孤立标签",
         noUntaggedNotes: "所有笔记均已标记",
         exportSuccess: "CSV 导出成功",
-        notesWithTag: "包含此标签的笔记"
+        notesWithTag: "包含此标签的笔记",
     },
 
     // 标签网络视图
@@ -337,7 +359,7 @@ export const zhCN: Translations = {
         clickToShowDocs: "点击标签显示文档",
         documentsWithTag: "包含此标签的文档",
         noDocuments: "未找到文档",
-        refresh: "刷新"
+        refresh: "刷新",
     },
 
     // 标签模板
@@ -361,7 +383,7 @@ export const zhCN: Translations = {
         deleteConfirm: "删除模板「{name}」？",
         duplicateName: "已存在同名模板",
         emptyName: "模板名称不能为空",
-        emptyTags: "请至少添加一个标签"
+        emptyTags: "请至少添加一个标签",
     },
 
     // 标签去重
@@ -377,13 +399,14 @@ export const zhCN: Translations = {
         mergeAll: "全部合并",
         skip: "跳过",
         merging: "正在合并标签...",
-        mergeSuccess: "已将「{source}」合并到「{target}」（更新了 {count} 个文件）",
+        mergeSuccess:
+            "已将「{source}」合并到「{target}」（更新了 {count} 个文件）",
         similarityType: "相似类型",
         typeAbbreviation: "缩写",
         typeCaseDiff: "大小写差异",
         typePlural: "复数形式",
         typeSimilar: "拼写相似",
         usageCount: "使用 {count} 次",
-        affectedFiles: "{count} 个文件"
-    }
+        affectedFiles: "{count} 个文件",
+    },
 };

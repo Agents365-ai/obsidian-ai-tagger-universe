@@ -1,10 +1,15 @@
-import { LLMResponse, LLMServiceConfig, ConnectionTestResult, ConnectionTestError } from './types';
-import { BaseLLMService } from './baseService';
-import { AdapterType, createAdapter, BaseAdapter } from './adapters';
-import { TaggingMode } from './prompts/types';
-import { LanguageCode } from './types';
-import { App, requestUrl } from 'obsidian';
-import { LLM_SERVICE_CONFIG } from '../utils/constants';
+import {
+    type LLMResponse,
+    type LLMServiceConfig,
+    ConnectionTestResult,
+    type ConnectionTestError,
+} from "./types";
+import { BaseLLMService } from "./baseService";
+import { type AdapterType, createAdapter, type BaseAdapter } from "./adapters";
+import type { TaggingMode } from "./prompts/types";
+import type { LanguageCode } from "./types";
+import { type App, requestUrl, type RequestUrlResponse } from "obsidian";
+import { LLM_SERVICE_CONFIG } from "../utils/constants";
 
 export class CloudLLMService extends BaseLLMService {
     private adapter: BaseAdapter;
@@ -12,14 +17,17 @@ export class CloudLLMService extends BaseLLMService {
     private readonly MAX_RETRIES = LLM_SERVICE_CONFIG.MAX_RETRIES;
     private readonly RETRY_DELAY = LLM_SERVICE_CONFIG.RETRY_DELAY;
 
-    constructor(config: Omit<LLMServiceConfig, 'type'> & { type: AdapterType }, app: App) {
+    constructor(
+        config: Omit<LLMServiceConfig, "type"> & { type: AdapterType },
+        app: App,
+    ) {
         super(config, app);
         this.adapter = createAdapter(config.type, {
             endpoint: config.endpoint,
-            apiKey: config.apiKey || '',
+            apiKey: config.apiKey || "",
             modelName: config.modelName,
             language: config.language,
-            llmTemperatureOverride: config.llmTemperatureOverride
+            llmTemperatureOverride: config.llmTemperatureOverride,
         });
     }
 
@@ -33,7 +41,10 @@ export class CloudLLMService extends BaseLLMService {
         return null;
     }
 
-    private async makeRequest(prompt: string, timeoutMs: number): Promise<any> {
+    private async makeRequest(
+        prompt: string,
+        timeoutMs: number,
+    ): Promise<RequestUrlResponse> {
         const validationError = this.validateCloudConfig();
         if (validationError) {
             throw new Error(validationError);
@@ -41,123 +52,153 @@ export class CloudLLMService extends BaseLLMService {
 
         // Create timeout promise for race condition
         const timeoutPromise = new Promise<never>((_, reject) => {
-            setTimeout(() => reject(new Error(`Request timed out after ${timeoutMs}ms`)), timeoutMs);
+            window.setTimeout(
+                () =>
+                    reject(new Error(`Request timed out after ${timeoutMs}ms`)),
+                timeoutMs,
+            );
         });
 
         const requestPromise = requestUrl({
             url: this.adapter.getEndpoint(),
-            method: 'POST',
+            method: "POST",
             headers: this.adapter.getHeaders(),
             body: JSON.stringify(this.adapter.formatRequest(prompt)),
-            throw: false
+            throw: false,
         });
 
         // Race between request and timeout
         return Promise.race([requestPromise, timeoutPromise]);
     }
 
-    private async makeRequestWithRetry(prompt: string, timeoutMs: number): Promise<any> {
+    private async makeRequestWithRetry(
+        prompt: string,
+        timeoutMs: number,
+    ): Promise<RequestUrlResponse> {
         let lastError: Error | null = null;
 
         for (let i = 0; i < this.MAX_RETRIES; i++) {
             try {
                 const response = await this.makeRequest(prompt, timeoutMs);
                 // requestUrl returns {status, json, text, etc.} - status 200-299 is success
-                if ((response.status >= 200 && response.status < 300) || response.status === 401) { // Don't retry auth errors
+                if (
+                    (response.status >= 200 && response.status < 300) ||
+                    response.status === 401
+                ) {
+                    // Don't retry auth errors
                     return response;
                 }
                 lastError = new Error(`HTTP error ${response.status}`);
             } catch (error) {
-                lastError = error instanceof Error ? error : new Error('Unknown error');
-                if (error instanceof Error && error.message.includes('Invalid API key')) {
+                lastError =
+                    error instanceof Error ? error : new Error("Unknown error");
+                if (
+                    error instanceof Error &&
+                    error.message.includes("Invalid API key")
+                ) {
                     throw error; // Don't retry auth errors
                 }
             }
 
             if (i < this.MAX_RETRIES - 1) {
-                await new Promise(resolve => setTimeout(resolve, this.RETRY_DELAY * (i + 1)));
+                await new Promise((resolve) =>
+                    window.setTimeout(resolve, this.RETRY_DELAY * (i + 1)),
+                );
             }
         }
 
-        throw lastError || new Error('Max retries exceeded');
+        throw lastError || new Error("Max retries exceeded");
     }
 
-    async testConnection(): Promise<{ result: ConnectionTestResult; error?: ConnectionTestError }> {
+    async testConnection(): Promise<{
+        result: ConnectionTestResult;
+        error?: ConnectionTestError;
+    }> {
         try {
-            const response = await this.makeRequestWithRetry('Connection test', 10000);
+            const response = await this.makeRequestWithRetry(
+                "Connection test",
+                10000,
+            );
 
             const responseText = response.text;
 
             if (response.status < 200 || response.status >= 300) {
                 if (response.status === 401) {
-                    throw new Error('Authentication failed: Invalid API key');
+                    throw new Error("Authentication failed: Invalid API key");
                 } else if (response.status === 404) {
                     // 404 here is most often an unknown/retired model, not a
                     // bad URL — the OpenAI-compat endpoints (Gemini, OpenRouter,
                     // etc.) return 404 when the model name doesn't exist.
-                    throw new Error('HTTP 404: endpoint reachable but the model was not found. Please verify the model name (and the URL).');
+                    throw new Error(
+                        "HTTP 404: endpoint reachable but the model was not found. Please verify the model name (and the URL).",
+                    );
                 }
 
-                try {
-                    const errorJson = JSON.parse(responseText);
-                    throw new Error(errorJson.error?.message || errorJson.message || `HTTP error ${response.status}`);
-                } catch (parseError) {
-                    // Truncate response to avoid exposing sensitive data in error messages
-                    const truncatedResponse = responseText.length > 200
-                        ? responseText.substring(0, 200) + '...'
+                // The original code threw the constructed message inside its
+                // own try block, so the catch always replaced it with the
+                // truncated-body error below; parsing here was dead code.
+                // Truncate response to avoid exposing sensitive data in error messages
+                const truncatedResponse =
+                    responseText.length > 200
+                        ? responseText.substring(0, 200) + "..."
                         : responseText;
-                    throw new Error(`HTTP error ${response.status}: ${truncatedResponse}`);
-                }
+                throw new Error(
+                    `HTTP error ${response.status}: ${truncatedResponse}`,
+                );
             }
 
             // Verify we can parse the response - don't check specific format
             // since different providers have different response structures
-            const data = JSON.parse(responseText);
+            const data: unknown = JSON.parse(responseText);
 
             // Just verify we got some kind of valid response
-            if (!data || typeof data !== 'object') {
-                throw new Error('Invalid API response format');
+            if (!data || typeof data !== "object") {
+                throw new Error("Invalid API response format");
             }
 
             return { result: ConnectionTestResult.Success };
         } catch (error) {
             let testError: ConnectionTestError = {
                 type: "unknown",
-                message: "Unknown error occurred during connection test"
+                message: "Unknown error occurred during connection test",
             };
 
             if (error instanceof Error) {
-                if (error.name === 'AbortError') {
+                if (error.name === "AbortError") {
                     testError = {
                         type: "timeout",
-                        message: "Connection timeout: Please check your network status"
+                        message:
+                            "Connection timeout: Please check your network status",
                     };
-                } else if (error.message.includes('Failed to fetch')) {
+                } else if (error.message.includes("Failed to fetch")) {
                     testError = {
                         type: "network",
-                        message: "Network error: Unable to reach the API endpoint"
+                        message:
+                            "Network error: Unable to reach the API endpoint",
                     };
-                } else if (error.message.includes('Authentication failed')) {
+                } else if (error.message.includes("Authentication failed")) {
                     testError = {
                         type: "auth",
-                        message: "Authentication failed: Please verify your API key"
+                        message:
+                            "Authentication failed: Please verify your API key",
                     };
-                } else if (error.message.includes('HTTP 404')) {
+                } else if (error.message.includes("HTTP 404")) {
                     testError = {
                         type: "network",
-                        message: "HTTP 404: endpoint reachable but the model was not found. Please verify the model name (and the URL)."
+                        message:
+                            "HTTP 404: endpoint reachable but the model was not found. Please verify the model name (and the URL).",
                     };
                 } else {
                     testError = {
                         type: "unknown",
-                        message: `Error: ${error.message}`
+                        message: `Error: ${error.message}`,
                     };
                 }
             }
 
             return {
                 result: ConnectionTestResult.Failed,
-                error: testError
+                error: testError,
             };
         }
     }
@@ -171,9 +212,21 @@ export class CloudLLMService extends BaseLLMService {
      * @param language - Language for generated tags
      * @returns Promise resolving to tag analysis result
      */
-    async analyzeTags(content: string, existingTags: string[], mode: TaggingMode, maxTags: number, language?: LanguageCode): Promise<LLMResponse> {
+    async analyzeTags(
+        content: string,
+        existingTags: string[],
+        mode: TaggingMode,
+        maxTags: number,
+        language?: LanguageCode,
+    ): Promise<LLMResponse> {
         // Use the base class implementation
-        return super.analyzeTags(content, existingTags, mode, maxTags, language);
+        return super.analyzeTags(
+            content,
+            existingTags,
+            mode,
+            maxTags,
+            language,
+        );
     }
 
     /**
@@ -185,29 +238,27 @@ export class CloudLLMService extends BaseLLMService {
         const response = await this.makeRequestWithRetry(prompt, this.TIMEOUT);
 
         if (response.status < 200 || response.status >= 300) {
-            const responseText = response.text;
-            try {
-                const errorJson = JSON.parse(responseText);
-                throw new Error(errorJson.error?.message || errorJson.message || `API error: ${response.status}`);
-            } catch {
-                throw new Error(`API error: ${response.status}`);
-            }
+            // The original try/catch around the body parse always replaced
+            // its own thrown error with this generic message.
+            throw new Error(`API error: ${response.status}`);
         }
 
         const responseText = response.text;
         try {
-            const data = JSON.parse(responseText);
+            const data: unknown = JSON.parse(responseText);
             // Try to get the completion content based on adapter or standard format
             const content = this.adapter.parseResponseContent(data);
             if (!content) {
-                throw new Error('No content found in response');
+                throw new Error("No content found in response");
             }
             return content;
         } catch (error) {
             if (error instanceof Error) {
                 throw error;
             }
-            throw new Error(`Failed to parse response: ${responseText.substring(0, 100)}...`);
+            throw new Error(
+                `Failed to parse response: ${responseText.substring(0, 100)}...`,
+            );
         }
     }
 

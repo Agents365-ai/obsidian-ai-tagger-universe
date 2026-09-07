@@ -1,5 +1,9 @@
 import { BaseLLMService } from "../baseService";
-import { AdapterConfig, LLMServiceProvider } from "./types";
+import type {
+    AdapterConfig,
+    LLMServiceProvider,
+    ParsedJsonValue,
+} from "./types";
 import { SYSTEM_PROMPT } from "../../utils/constants";
 import { TaggingMode } from "../prompts/types";
 
@@ -9,13 +13,23 @@ export abstract class BaseAdapter extends BaseLLMService {
 
     protected getTemperatureOverride(): number | null {
         const value = this.config.llmTemperatureOverride;
-        if (typeof value !== 'number' || !Number.isFinite(value)) {
+        if (typeof value !== "number" || !Number.isFinite(value)) {
             return null;
         }
         return value;
     }
 
-    protected applyTemperatureOverride(body: Record<string, any>): void {
+    /**
+     * Narrows an unknown value to a record (objects and arrays pass, matching
+     * the tolerant property access used throughout the adapters), or null.
+     */
+    protected asRecord(value: unknown): Record<string, unknown> | null {
+        return value !== null && typeof value === "object"
+            ? (value as Record<string, unknown>)
+            : null;
+    }
+
+    protected applyTemperatureOverride(body: Record<string, unknown>): void {
         const override = this.getTemperatureOverride();
         if (override === null) {
             return;
@@ -25,22 +39,93 @@ export abstract class BaseAdapter extends BaseLLMService {
         body.temperature = override;
 
         // Vertex AI style: { parameters: { temperature } } or { _vertex: { parameters: { temperature } } }
-        if (body.parameters && typeof body.parameters === 'object') {
-            body.parameters.temperature = override;
+        const parameters = this.asRecord(body.parameters);
+        if (parameters) {
+            parameters.temperature = override;
         }
-        if (body._vertex?.parameters && typeof body._vertex.parameters === 'object') {
-            body._vertex.parameters.temperature = override;
+        const vertex = this.asRecord(body._vertex);
+        if (vertex) {
+            const vertexParameters = this.asRecord(vertex.parameters);
+            if (vertexParameters) {
+                vertexParameters.temperature = override;
+            }
         }
 
         // AWS Bedrock Titan style: { textGenerationConfig: { temperature } }
-        if (body.textGenerationConfig && typeof body.textGenerationConfig === 'object') {
-            body.textGenerationConfig.temperature = override;
+        const textGenerationConfig = this.asRecord(body.textGenerationConfig);
+        if (textGenerationConfig) {
+            textGenerationConfig.temperature = override;
         }
 
         // Gemini style (non-OpenAI endpoints): { generationConfig: { temperature } }
-        if (body.generationConfig && typeof body.generationConfig === 'object') {
-            body.generationConfig.temperature = override;
+        const generationConfig = this.asRecord(body.generationConfig);
+        if (generationConfig) {
+            generationConfig.temperature = override;
         }
+    }
+
+    /**
+     * Reads a nested value from an unknown response payload along a path,
+     * returning undefined when any intermediate step is not an object.
+     */
+    protected getPathValue(
+        source: unknown,
+        path: (string | number)[],
+    ): ParsedJsonValue | undefined {
+        let current: unknown = source;
+        for (const key of path) {
+            const record = this.asRecord(current);
+            if (!record) {
+                return undefined;
+            }
+            current = record[key];
+        }
+        return current as ParsedJsonValue | undefined;
+    }
+
+    /**
+     * Reads a nested string value, or '' when missing or not a string.
+     */
+    protected getStringPath(
+        source: unknown,
+        path: (string | number)[],
+    ): string {
+        const value = this.getPathValue(source, path);
+        return typeof value === "string" ? value : "";
+    }
+
+    /**
+     * Reads an array field from an unknown parsed JSON payload and coerces
+     * every element to a string. Returns null when the field is missing or
+     * not an array.
+     */
+    protected getArrayField(source: unknown, key: string): string[] | null {
+        const record = this.asRecord(source);
+        const value = record ? record[key] : undefined;
+        if (!Array.isArray(value)) {
+            return null;
+        }
+        return value.map((tag) => String(tag));
+    }
+
+    /**
+     * Extracts an error message from an unknown error payload by trying each
+     * path in order, then falling back to Error.message.
+     */
+    protected getErrorMessage(
+        source: unknown,
+        paths: (string | number)[][],
+    ): string {
+        for (const path of paths) {
+            const value = this.getPathValue(source, path);
+            if (typeof value === "string" && value) {
+                return value;
+            }
+        }
+        if (source instanceof Error && source.message) {
+            return source.message;
+        }
+        return "Unknown error occurred";
     }
 
     /**
@@ -50,83 +135,98 @@ export abstract class BaseAdapter extends BaseLLMService {
      * @param language - Optional language code
      * @returns Formatted request body
      */
-    public formatRequest(prompt: string, language?: string): any {
-        let requestBody: any;
+    public formatRequest(
+        prompt: string,
+        language?: string,
+    ): Record<string, unknown> {
+        let requestBody: Record<string, unknown>;
         if (this.provider?.requestFormat?.body) {
             // For providers that need specific request format
             requestBody = {
                 ...this.provider.requestFormat.body,
                 messages: [
-                    { role: 'system', content: SYSTEM_PROMPT },
-                    { role: 'user', content: prompt }
-                ]
+                    { role: "system", content: SYSTEM_PROMPT },
+                    { role: "user", content: prompt },
+                ],
             };
         } else {
             // If no provider-specific format, use the parent class implementation
-            requestBody = super.formatRequest(prompt, language);
+            const parentBody: unknown = super.formatRequest(prompt, language);
+            requestBody = this.asRecord(parentBody) ?? {
+                messages: [
+                    { role: "system", content: SYSTEM_PROMPT },
+                    { role: "user", content: prompt },
+                ],
+            };
         }
 
-        if (requestBody && typeof requestBody === 'object') {
-            this.applyTemperatureOverride(requestBody);
-        }
+        this.applyTemperatureOverride(requestBody);
 
         return requestBody;
     }
 
-    public parseResponse(response: any): any {
+    public parseResponse(response: unknown): any {
         if (!this.provider?.responseFormat?.path) {
-            throw new Error('Provider response format not configured');
+            throw new Error("Provider response format not configured");
         }
 
         try {
-            if (response.error && this.provider.responseFormat.errorPath) {
-                let errorMsg: unknown = response;
-                for (const key of this.provider.responseFormat.errorPath) {
-                    if (errorMsg === null || errorMsg === undefined || typeof errorMsg !== 'object') {
-                        break;
-                    }
-                    errorMsg = (errorMsg as Record<string | number, unknown>)[key];
-                }
-                throw new Error(typeof errorMsg === 'string' ? errorMsg : 'Unknown error');
+            if (
+                this.getPathValue(response, ["error"]) &&
+                this.provider.responseFormat.errorPath
+            ) {
+                const errorMsg = this.getPathValue(
+                    response,
+                    this.provider.responseFormat.errorPath,
+                );
+                throw new Error(
+                    typeof errorMsg === "string" ? errorMsg : "Unknown error",
+                );
             }
 
-            let result = response;
+            let result: unknown = response;
             for (const key of this.provider.responseFormat.path) {
-                if (!result || typeof result !== 'object') {
-                    throw new Error('Invalid response structure');
+                const record = this.asRecord(result);
+                if (!record) {
+                    throw new Error("Invalid response structure");
                 }
-                result = result[key];
+                result = record[key];
             }
 
             // Extract JSON from content if needed
-            if (typeof result === 'string') {
+            if (typeof result === "string") {
+                const text = result;
                 try {
-                    result = this.extractJsonFromContent(result);
-                } catch (error) {
-                    //console.error('Failed to parse JSON from response:', error);
+                    result = this.extractJsonFromContent(text);
+                } catch {
                     // If JSON parsing fails, try to extract tags directly
-                    const tags = this.extractTagsFromText(result);
+                    const tags = this.extractTagsFromText(text);
                     result = {
                         matchedTags: [],
-                        newTags: tags
+                        newTags: tags,
                     };
                 }
             }
 
             // Ensure both matchedTags and newTags are arrays of strings
-            if (result.matchedTags && !Array.isArray(result.matchedTags)) {
-                result.matchedTags = [];
-            }
-            if (result.newTags && !Array.isArray(result.newTags)) {
-                result.newTags = [];
+            const record = this.asRecord(result);
+            if (!record) {
+                throw new Error("Invalid response structure");
             }
 
-            result.matchedTags = (result.matchedTags || []).map((tag: any) => String(tag).trim());
-            result.newTags = (result.newTags || []).map((tag: any) => String(tag).trim());
+            const matchedTags = Array.isArray(record.matchedTags)
+                ? record.matchedTags
+                : [];
+            const newTags = Array.isArray(record.newTags) ? record.newTags : [];
 
-            return result;
+            return {
+                ...record,
+                matchedTags: matchedTags.map((tag) => String(tag).trim()),
+                newTags: newTags.map((tag) => String(tag).trim()),
+            };
         } catch (error: unknown) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
+            const message =
+                error instanceof Error ? error.message : "Unknown error";
             throw new Error(`Failed to parse response: ${message}`);
         }
     }
@@ -135,23 +235,24 @@ export abstract class BaseAdapter extends BaseLLMService {
         // Look for hashtags in the response
         const hashtagRegex = /#[\p{L}\p{N}-]+/gu;
         const hashtags = text.match(hashtagRegex) || [];
-        
+
         if (hashtags.length > 0) {
             return hashtags;
         }
-        
+
         // If no hashtags found, look for potential tags in quotes or lists
-        const potentialTagsRegex = /["']([a-zA-Z0-9-]+)["']|\s+[-*]\s+([a-zA-Z0-9-]+)/g;
+        const potentialTagsRegex =
+            /["']([a-zA-Z0-9-]+)["']|\s+[-*]\s+([a-zA-Z0-9-]+)/g;
         const potentialTags: string[] = [];
         let match;
-        
+
         while ((match = potentialTagsRegex.exec(text)) !== null) {
             const tag = match[1] || match[2];
             if (tag) {
                 potentialTags.push(`#${tag}`);
             }
         }
-        
+
         return potentialTags;
     }
 
@@ -160,34 +261,45 @@ export abstract class BaseAdapter extends BaseLLMService {
     }
 
     constructor(config: AdapterConfig) {
-        super({
-            ...config,
-            endpoint: config.endpoint ?? "",
-            modelName: config.modelName ?? ""
-        }, null);  // Adapters don't need the Obsidian app instance
+        super(
+            {
+                ...config,
+                endpoint: config.endpoint ?? "",
+                modelName: config.modelName ?? "",
+            },
+            null,
+        ); // Adapters don't need the Obsidian app instance
         this.config = config;
     }
 
     async analyzeTags(content: string, existingTags: string[]): Promise<any> {
-        const prompt = this.buildPrompt(content, existingTags, TaggingMode.Hybrid, 10, this.config.language);
+        const prompt = this.buildPrompt(
+            content,
+            existingTags,
+            TaggingMode.Hybrid,
+            10,
+            this.config.language,
+        );
         const response = await this.makeRequest(prompt);
         return this.parseResponse(response);
     }
 
     async testConnection(): Promise<{ result: any; error?: any }> {
         try {
-            await this.makeRequest('test');
+            await this.makeRequest("test");
             return { result: { success: true } };
         } catch (error) {
             return { result: { success: false }, error };
         }
     }
 
-    protected async makeRequest(prompt: string): Promise<any> {
+    protected async makeRequest(prompt: string): Promise<unknown> {
         // This method should not be called directly.
         // HTTP requests should be made through CloudLLMService which uses Obsidian's requestUrl
         // to avoid CORS issues. Adapters are meant to format/parse requests, not make them.
-        throw new Error('BaseAdapter.makeRequest should not be called directly. Use CloudLLMService instead.');
+        throw new Error(
+            "BaseAdapter.makeRequest should not be called directly. Use CloudLLMService instead.",
+        );
     }
 
     getEndpoint(): string {
@@ -196,23 +308,26 @@ export abstract class BaseAdapter extends BaseLLMService {
 
     getHeaders(): Record<string, string> {
         return {
-            'Content-Type': 'application/json'
+            "Content-Type": "application/json",
         };
     }
 
-    protected extractJsonFromContent(content: string): any {
+    protected extractJsonFromContent(content: string): ParsedJsonValue {
         try {
-            const jsonMatch = content.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
+            const jsonMatch = content.match(
+                /```(?:json)?\s*(\{[\s\S]*?\})\s*```/,
+            );
             if (jsonMatch) {
-                return JSON.parse(jsonMatch[1]);
+                return JSON.parse(jsonMatch[1]) as ParsedJsonValue;
             }
             const standaloneJson = content.match(/\{[\s\S]*\}/);
             if (standaloneJson) {
-                return JSON.parse(standaloneJson[0]);
+                return JSON.parse(standaloneJson[0]) as ParsedJsonValue;
             }
-            throw new Error('No JSON found in response');
+            throw new Error("No JSON found in response");
         } catch (error: unknown) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
+            const message =
+                error instanceof Error ? error.message : "Unknown error";
             throw new Error(`Failed to parse JSON: ${message}`);
         }
     }
@@ -222,26 +337,34 @@ export abstract class BaseAdapter extends BaseLLMService {
      * @param response The response object from the cloud provider
      * @returns The extracted content as a string
      */
-    public parseResponseContent(response: any): string {
+    public parseResponseContent(response: unknown): string {
         try {
             if (!this.provider?.responseFormat?.contentPath) {
                 // Default OpenAI-like format
-                return response.choices?.[0]?.message?.content || '';
+                const content = this.getPathValue(response, [
+                    "choices",
+                    0,
+                    "message",
+                    "content",
+                ]);
+                return typeof content === "string" ? content : "";
             }
 
             // Follow provider-specific content path
-            let content = response;
+            let content: unknown = response;
             for (const key of this.provider.responseFormat.contentPath) {
-                if (!content || typeof content !== 'object') {
-                    throw new Error('Invalid response structure');
+                const record = this.asRecord(content);
+                if (!record) {
+                    throw new Error("Invalid response structure");
                 }
-                content = content[key];
+                content = record[key];
             }
-            
-            return typeof content === 'string' ? content : JSON.stringify(content);
-        } catch (error) {
-            //console.error('Failed to parse response content:', error);
-            return '';
+
+            return typeof content === "string"
+                ? content
+                : JSON.stringify(content);
+        } catch {
+            return "";
         }
     }
 

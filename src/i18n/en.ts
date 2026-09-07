@@ -1,4 +1,4 @@
-import { Translations } from './types';
+import { Translations } from "./types";
 
 export const en: Translations = {
     // Settings sections
@@ -14,9 +14,11 @@ export const en: Translations = {
             modelName: "Model Name",
             modelNameDesc: "Enter the model name you want to use",
             temperature: "Temperature (Override)",
-            temperatureDesc: "Leave empty for Auto (use provider default). Set to 0 for more deterministic output.",
+            temperatureDesc:
+                "Leave empty for Auto (use provider default). Set to 0 for more deterministic output.",
             temperaturePlaceholder: "Auto",
-            temperatureInvalid: "Invalid temperature. Enter a number between 0 and 2, or leave blank for Auto.",
+            temperatureInvalid:
+                "Invalid temperature. Enter a number between 0 and 2, or leave blank for Auto.",
             apiEndpoint: "API Endpoint",
             apiEndpointDesc: "Enter the API endpoint URL",
             apiKey: "API Key",
@@ -31,7 +33,7 @@ export const en: Translations = {
             debugModeDesc: "Enable debug mode for detailed logging",
             debugEnabled: "Debug mode enabled",
             debugDisabled: "Debug mode disabled",
-            tipsPopularTools: "Popular Tools Tips"
+            tipsPopularTools: "Popular Tools Tips",
         },
         tagging: {
             title: "Tagging Settings",
@@ -48,29 +50,37 @@ export const en: Translations = {
             sourceFile: "From predefined tags file",
             sourceVault: "From all existing tags in vault",
             predefinedTagsFile: "Predefined tags file",
-            predefinedTagsFileDesc: "Path to a file containing predefined tags (one tag per line)",
+            predefinedTagsFileDesc:
+                "Path to a file containing predefined tags (one tag per line)",
             fileExclusion: "File Exclusion",
             excludedFiles: "Excluded files and folders",
-            excludedFilesDesc: "Files matching these patterns will be hidden in Search, Graph View, and Unlinked Mentions, less noticeable in Quick Switcher and link suggestions.",
+            excludedFilesDesc:
+                "Files matching these patterns will be hidden in Search, Graph View, and Unlinked Mentions, less noticeable in Quick Switcher and link suggestions.",
             manage: "Manage",
             noExclusions: "No exclusions configured",
             patternsConfigured: "patterns configured",
             tagRangeSettings: "Tag Range Settings",
             maxPredefinedTags: "Maximum predefined tags",
-            maxPredefinedTagsDesc: "Maximum number of predefined tags to use (0-10). Used in Predefined and Hybrid modes.",
+            maxPredefinedTagsDesc:
+                "Maximum number of predefined tags to use (0-10). Used in Predefined and Hybrid modes.",
             maxGeneratedTags: "Maximum generated tags",
-            maxGeneratedTagsDesc: "Maximum number of new tags to generate (0-10). Used in Generate and Hybrid modes.",
+            maxGeneratedTagsDesc:
+                "Maximum number of new tags to generate (0-10). Used in Generate and Hybrid modes.",
             outputLanguage: "Output Language",
             outputLanguageDesc: "Language for generating tags",
             customPrompt: "Custom Prompt",
-            customPromptDesc: "Define custom instructions for tag generation. The default prompt is provided as a starting template - modify it to fit your needs.",
+            customPromptDesc:
+                "Additional instructions applied in every tagging mode. Mode-specific tag sources, limits, language, and output format still apply. Leave blank to use only built-in instructions. Custom mode requires instructions.",
             pathPlaceholder: "Enter path or pattern...",
-            customPromptPlaceholder: "Modify the default prompt or write your own instructions...",
+            customPromptPlaceholder:
+                "Modify the default prompt or write your own instructions...",
             nestedTagsSettings: "Nested Tags Settings",
             enableNestedTags: "Enable Nested Tags",
-            enableNestedTagsDesc: "Generate hierarchical tags using forward slashes (e.g., science/biology). This creates parent/child relationships between tags.",
+            enableNestedTagsDesc:
+                "Generate hierarchical tags using forward slashes (e.g., science/biology). This creates parent/child relationships between tags.",
             nestedTagsMaxDepth: "Max Nesting Depth",
-            nestedTagsMaxDepthDesc: "Maximum levels of nesting (1-3). Example: depth of 2 allows parent/child, depth of 3 allows parent/child/grandchild.",
+            nestedTagsMaxDepthDesc:
+                "Maximum levels of nesting (1-3). Example: depth of 2 allows parent/child, depth of 3 allows parent/child/grandchild.",
             tagFormatSettings: "Tag Format Settings",
             tagFormat: "Tag Format",
             tagFormatDesc: "Choose the naming convention for generated tags.",
@@ -81,25 +91,30 @@ export const en: Translations = {
             tagFormatOriginal: "Original (preserve as-is)",
             tagBehaviorSettings: "Tag Behavior Settings",
             preserveExistingTags: "Preserve Existing Tags",
-            preserveExistingTagsDesc: "When enabled, AI-generated tags will be merged with existing tags in the note. When disabled, existing tags will be completely replaced by AI-generated tags.",
+            preserveExistingTagsDesc:
+                "When enabled, AI-generated tags will be merged with existing tags in the note. When disabled, existing tags will be completely replaced by AI-generated tags.",
             excludedTags: "Excluded Tags",
-            excludedTagsDesc: "Tags listed here will be removed from every LLM response, regardless of mode. Comma- or newline-separated. Matching is case-insensitive and ignores spaces / hyphens (e.g. 'Meeting Notes' blocks 'meeting-notes').",
+            excludedTagsDesc:
+                "Tags listed here will be removed from every LLM response, regardless of mode. Comma- or newline-separated. Matching is case-insensitive and ignores spaces / hyphens (e.g. 'Meeting Notes' blocks 'meeting-notes').",
             excludedTagsPlaceholder: "meeting, meeting-notes, agenda",
             requestTimeout: "Request Timeout (seconds)",
-            requestTimeoutDesc: "Maximum time to wait for LLM response. Increase for slower models or large documents.",
+            requestTimeoutDesc:
+                "Maximum time to wait for LLM response. Increase for slower models or large documents.",
         },
         support: {
             title: "Support",
-            description: "If you find this plugin useful, please consider supporting me",
-            supportText: "If you find this plugin useful, please consider supporting me",
+            description:
+                "If you find this plugin useful, please consider supporting me",
+            supportText:
+                "If you find this plugin useful, please consider supporting me",
             buyMeACoffee: "Buy me a coffee",
-            buyCoffee: "Buy me a coffee"
+            buyCoffee: "Buy me a coffee",
         },
         interface: {
             title: "Interface",
             language: "Language",
-            languageDesc: "Choose your preferred interface language"
-        }
+            languageDesc: "Choose your preferred interface language",
+        },
     },
 
     // Commands
@@ -119,7 +134,8 @@ export const en: Translations = {
         aiTagThisNote: "AI Tag This Note",
         aiTagThisFolder: "AI Tag Notes in This Folder",
         flattenTagsForCurrentNote: "Flatten hierarchical tags for current note",
-        flattenTagsForCurrentFolder: "Flatten hierarchical tags for current folder",
+        flattenTagsForCurrentFolder:
+            "Flatten hierarchical tags for current folder",
         flattenTagsForVault: "Flatten hierarchical tags for vault",
         showTagAnalytics: "Show tag analytics dashboard",
         bulkRenameTag: "Bulk rename tag",
@@ -127,7 +143,7 @@ export const en: Translations = {
         exportTagsJSON: "Export tags to JSON",
         importTags: "Import tags from file",
         applyTagTemplate: "Apply tag template",
-        deduplicateTags: "Find and merge similar tags"
+        deduplicateTags: "Find and merge similar tags",
     },
 
     // Messages and notifications
@@ -168,17 +184,23 @@ export const en: Translations = {
         noMarkdownFilesFound: "No Markdown files found",
         noContentToAnalyze: "No content to analyze",
         failedToGenerateTags: "Failed to generate tags",
-        generateTagsForFolderConfirm: "Are you sure you want to generate tags for all Markdown files in the current folder? This may take some time for folders with multiple files.",
-        generateTagsForVaultConfirm: "Are you sure you want to generate tags for all Markdown files in your vault? This may take a long time depending on your vault size.",
-        generateTagsForSelectedConfirm: "Are you sure you want to generate tags for the selected {count} files? This may take some time.",
+        generateTagsForFolderConfirm:
+            "Are you sure you want to generate tags for all Markdown files in the current folder? This may take some time for folders with multiple files.",
+        generateTagsForVaultConfirm:
+            "Are you sure you want to generate tags for all Markdown files in your vault? This may take a long time depending on your vault size.",
+        generateTagsForSelectedConfirm:
+            "Are you sure you want to generate tags for the selected {count} files? This may take some time.",
         generateTagsInProgress: "Analyzing {current}/{total} files...",
-        tagsGeneratedSuccessfully: "Successfully generated tags for {success}/{total} files",
+        tagsGeneratedSuccessfully:
+            "Successfully generated tags for {success}/{total} files",
         failedToGenerateForFiles: "Error generating tags",
         progressPrefix: "Progress: {current}/{total}",
         completedPrefix: "Completed: {success}/{total}",
         restartRequired: "Restart required after changing language",
-        languageChangeNotice: "Language has been changed. Please restart Obsidian for changes to take effect.",
-        clearTagsForFolderConfirm: "Are you sure you want to clear tags from {count} files in the current folder?",
+        languageChangeNotice:
+            "Language has been changed. Please restart Obsidian for changes to take effect.",
+        clearTagsForFolderConfirm:
+            "Are you sure you want to clear tags from {count} files in the current folder?",
         tagsClearedFrom: "Cleared tags from {count} files",
         failedToClearTags: "Failed to clear tags",
         noTagsInVault: "No tags found in vault",
@@ -190,12 +212,15 @@ export const en: Translations = {
         errorLoadingFiles: "Error loading files",
         noActiveFile: "No active file",
         noPredefinedTagsFound: "No predefined tags found",
-        flattenTagsConfirm: "This will convert hierarchical tags (e.g., a/b/c) into separate tags (a, b, c). Continue?",
-        flattenTagsForFolderConfirm: "Flatten hierarchical tags for {count} files in the current folder?",
-        flattenTagsForVaultConfirm: "Flatten hierarchical tags for all files in your vault? This may take a while.",
+        flattenTagsConfirm:
+            "This will convert hierarchical tags (e.g., a/b/c) into separate tags (a, b, c). Continue?",
+        flattenTagsForFolderConfirm:
+            "Flatten hierarchical tags for {count} files in the current folder?",
+        flattenTagsForVaultConfirm:
+            "Flatten hierarchical tags for all files in your vault? This may take a while.",
         flatteningTags: "Flattening tags...",
         tagsFlattenedSuccessfully: "Flattened tags in {count} files",
-        noHierarchicalTags: "No hierarchical tags found"
+        noHierarchicalTags: "No hierarchical tags found",
     },
 
     // Modal dialogs
@@ -203,30 +228,36 @@ export const en: Translations = {
         warning: "Warning",
         confirm: "Confirm",
         cancel: "Cancel",
-        clearAllTagsConfirm: "Are you sure you want to clear all tags from all notes? This action cannot be undone.",
-        generateFolderConfirm: "Are you sure you want to generate tags for all Markdown files in the current folder? This may take some time for folders with multiple files.",
-        generateVaultConfirm: "Are you sure you want to generate tags for all Markdown files in your vault? This may take a long time depending on your vault size.",
-        generateSelectedConfirm: "Are you sure you want to generate tags for the selected {count} files? This may take some time.",
-        saveTagsConfirm: "This will overwrite the file content with all unique tags. Continue?",
+        clearAllTagsConfirm:
+            "Are you sure you want to clear all tags from all notes? This action cannot be undone.",
+        generateFolderConfirm:
+            "Are you sure you want to generate tags for all Markdown files in the current folder? This may take some time for folders with multiple files.",
+        generateVaultConfirm:
+            "Are you sure you want to generate tags for all Markdown files in your vault? This may take a long time depending on your vault size.",
+        generateSelectedConfirm:
+            "Are you sure you want to generate tags for the selected {count} files? This may take some time.",
+        saveTagsConfirm:
+            "This will overwrite the file content with all unique tags. Continue?",
         excludedFilesTitle: "Excluded files",
-        excludedFilesSubtitle: "Files matching the following filters are currently excluded:",
+        excludedFilesSubtitle:
+            "Files matching the following filters are currently excluded:",
         addButton: "Add",
         clearAllButton: "Clear All",
         clearAllConfirm: "Are you sure you want to remove all excluded paths?",
         cancelButton: "Cancel",
         saveButton: "Save",
         noMatchingPaths: "No matching paths found",
-        useAsPattern: "Use \"{searchTerm}\" as pattern",
+        useAsPattern: 'Use "{searchTerm}" as pattern',
         moreResults: "more results...",
         errorLoadingPaths: "Error loading paths",
         noExclusionsDefined: "No exclusions defined yet.",
         filterLabel: "Filter",
-        pathPlaceholder: "Enter path or \"/regex/\""
+        pathPlaceholder: 'Enter path or "/regex/"',
     },
 
     // File menu items
     fileMenu: {
-        tagNetwork: "Tag Network"
+        tagNetwork: "Tag Network",
     },
 
     // Dropdown options
@@ -254,16 +285,18 @@ export const en: Translations = {
         localai: "LocalAI",
         lmStudio: "LM Studio",
         jan: "Jan",
-        koboldcpp: "KoboldCpp"
+        koboldcpp: "KoboldCpp",
     },
 
     // Tips
     tips: {
         ollama: "Make sure Ollama is running and accessible at http://localhost:11434",
-        localai: "Make sure LocalAI is running and configured with the correct endpoint",
+        localai:
+            "Make sure LocalAI is running and configured with the correct endpoint",
         lmStudio: "Make sure LM Studio is running and the server is enabled",
         jan: "Make sure Jan is running and the local server is activated",
-        koboldcpp: "Make sure KoboldCpp is running and the API endpoint is accessible"
+        koboldcpp:
+            "Make sure KoboldCpp is running and the API endpoint is accessible",
     },
 
     // Tag Import/Export
@@ -276,9 +309,10 @@ export const en: Translations = {
         modeReplace: "Replace existing tags",
         import: "Import",
         importing: "Importing...",
-        importSuccess: "Imported tags: {success} files updated, {skipped} skipped, {failed} failed",
+        importSuccess:
+            "Imported tags: {success} files updated, {skipped} skipped, {failed} failed",
         importError: "Import failed",
-        noFileSelected: "Please select a file"
+        noFileSelected: "Please select a file",
     },
 
     // Tag Rename
@@ -292,13 +326,14 @@ export const en: Translations = {
         renaming: "Renaming...",
         success: "Renamed tag in {count} files",
         noTagSpecified: "Please enter both old and new tag names",
-        sameTagError: "Old and new tag names are the same"
+        sameTagError: "Old and new tag names are the same",
     },
 
     // Tag Analytics View
     tagAnalytics: {
         title: "Tag Analytics Dashboard",
-        description: "Usage statistics and health metrics for your vault's tag system.",
+        description:
+            "Usage statistics and health metrics for your vault's tag system.",
         refresh: "Refresh",
         exportCSV: "Export CSV",
         summary: "Summary",
@@ -321,13 +356,14 @@ export const en: Translations = {
         noOrphanedTags: "No orphaned tags",
         noUntaggedNotes: "All notes are tagged",
         exportSuccess: "CSV exported successfully",
-        notesWithTag: "Notes with tag"
+        notesWithTag: "Notes with tag",
     },
 
     // Tag Network View
     tagNetwork: {
         title: "Tag Network Visualization",
-        description: "Node size represents tag frequency. Connections represent tags that appear together in notes.",
+        description:
+            "Node size represents tag frequency. Connections represent tags that appear together in notes.",
         searchPlaceholder: "Type to search...",
         repulsionStrength: "Repulsion",
         linkDistance: "Link Distance",
@@ -337,7 +373,7 @@ export const en: Translations = {
         clickToShowDocs: "Click tag to show documents",
         documentsWithTag: "Documents with tag",
         noDocuments: "No documents found",
-        refresh: "Refresh"
+        refresh: "Refresh",
     },
 
     // Tag Templates
@@ -354,20 +390,22 @@ export const en: Translations = {
         templateTagsDesc: "Comma-separated list of tags",
         save: "Save",
         cancel: "Cancel",
-        noTemplates: "No templates defined. Click 'Add Template' to create one.",
+        noTemplates:
+            "No templates defined. Click 'Add Template' to create one.",
         applyTemplate: "Apply Template",
         selectTemplate: "Select a template to apply",
         templateApplied: "Template '{name}' applied ({count} tags)",
         deleteConfirm: "Delete template '{name}'?",
         duplicateName: "A template with this name already exists",
         emptyName: "Template name cannot be empty",
-        emptyTags: "Please add at least one tag"
+        emptyTags: "Please add at least one tag",
     },
 
     // Tag Deduplication
     tagDeduplication: {
         title: "Smart Tag Deduplication",
-        description: "Find and merge similar tags to keep your vault organized.",
+        description:
+            "Find and merge similar tags to keep your vault organized.",
         scanning: "Scanning for similar tags...",
         noDuplicates: "No similar tags found. Your tags are clean!",
         duplicatesFound: "{count} similar tag groups found",
@@ -377,13 +415,14 @@ export const en: Translations = {
         mergeAll: "Merge All",
         skip: "Skip",
         merging: "Merging tags...",
-        mergeSuccess: "Merged '{source}' into '{target}' ({count} files updated)",
+        mergeSuccess:
+            "Merged '{source}' into '{target}' ({count} files updated)",
         similarityType: "Similarity",
         typeAbbreviation: "Abbreviation",
         typeCaseDiff: "Case difference",
         typePlural: "Plural form",
         typeSimilar: "Similar spelling",
         usageCount: "Used {count} times",
-        affectedFiles: "{count} files"
-    }
+        affectedFiles: "{count} files",
+    },
 };

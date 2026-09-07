@@ -1,38 +1,38 @@
 import { BaseAdapter } from "./baseAdapter";
 import { AdapterConfig, RequestBody, BaseResponse } from "./types";
-import * as endpoints from './cloudEndpoints.json';
+import * as endpoints from "./cloudEndpoints.json";
 
 export class GLMAdapter extends BaseAdapter {
   constructor(config: AdapterConfig) {
     super({
       ...config,
       endpoint: config.endpoint || endpoints.glm,
-      modelName: config.modelName || 'glm-4-flash'
+      modelName: config.modelName || "glm-4-flash",
     });
     this.provider = {
-      name: 'glm',
+      name: "glm",
       requestFormat: {
         body: {
-          model: this.modelName
-        }
+          model: this.modelName,
+        },
       },
       responseFormat: {
-        path: ['choices', '0', 'message', 'content'],
-        errorPath: ['error', 'message']
-      }
+        path: ["choices", "0", "message", "content"],
+        errorPath: ["error", "message"],
+      },
     };
   }
 
   getHeaders(): Record<string, string> {
     return {
-      'Authorization': `Bearer ${this.config.apiKey}`,
-      'Content-Type': 'application/json'
+      Authorization: `Bearer ${this.config.apiKey}`,
+      "Content-Type": "application/json",
     };
   }
 
   private readonly defaultConfig = {
-    defaultModel: 'glm-4-flash',
-    temperature: 0.7
+    defaultModel: "glm-4-flash",
+    temperature: 0.7,
   };
 
   public validateConfig(): string | null {
@@ -40,38 +40,29 @@ export class GLMAdapter extends BaseAdapter {
     if (baseValidation) return baseValidation;
 
     if (!this.config.apiKey) {
-      return 'API key is required for GLM (Zhipu AI)';
+      return "API key is required for GLM (Zhipu AI)";
     }
     return null;
   }
 
-  parseResponse(response: any): BaseResponse {
+  parseResponse(response: unknown): BaseResponse {
     try {
-      let result = response;
-      let content = '';
-
-      if (response.choices?.[0]?.message?.content) {
-        content = response.choices[0].message.content;
-      }
-
-      if (this.provider?.responseFormat?.path) {
-        for (const key of this.provider.responseFormat.path) {
-          if (!result || typeof result !== 'object') {
-            throw new Error('Invalid response structure');
-          }
-          result = result[key];
-        }
-      }
-
+      const content = this.getStringPath(response, [
+        "choices",
+        0,
+        "message",
+        "content",
+      ]);
       const jsonContent = this.extractJsonFromContent(content);
 
       return {
         text: content,
-        matchedExistingTags: jsonContent.matchedTags || [],
-        suggestedTags: jsonContent.newTags || []
+        matchedExistingTags:
+          this.getArrayField(jsonContent, "matchedTags") ?? [],
+        suggestedTags: this.getArrayField(jsonContent, "newTags") ?? [],
       };
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
+      const message = error instanceof Error ? error.message : "Unknown error";
       throw new Error(`Failed to parse GLM response: ${message}`);
     }
   }

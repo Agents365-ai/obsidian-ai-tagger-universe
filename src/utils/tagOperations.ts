@@ -71,6 +71,6 @@ export class TagOperations {
             this.app.metadataCache.trigger('changed', file);
         });
         this.app.workspace.trigger('layout-change');
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => window.setTimeout(resolve, 500));
     }
 }

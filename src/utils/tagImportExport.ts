@@ -1,7 +1,6 @@
-import { App, TFile, Notice } from 'obsidian';
-import { TagUtils } from './tagUtils';
-import { TagFormat } from '../core/settings';
-import * as yaml from 'js-yaml';
+import { type App, TFile, parseYaml, stringifyYaml } from "obsidian";
+import { TagUtils } from "./tagUtils";
+import type { TagFormat } from "../core/settings";
 
 export interface TagExportEntry {
     path: string;
@@ -27,14 +26,14 @@ export class TagImportExport {
     async exportToJSON(files?: TFile[]): Promise<string> {
         const entries = await this.collectTagData(files);
         const uniqueTags = new Set<string>();
-        entries.forEach(e => e.tags.forEach(t => uniqueTags.add(t)));
+        entries.forEach((e) => e.tags.forEach((t) => uniqueTags.add(t)));
 
         const data: TagExportData = {
-            version: '1.0',
+            version: "1.0",
             exportedAt: new Date().toISOString(),
             totalFiles: entries.length,
             totalTags: uniqueTags.size,
-            entries
+            entries,
         };
 
         return JSON.stringify(data, null, 2);
@@ -44,16 +43,18 @@ export class TagImportExport {
     async exportToCSV(files?: TFile[]): Promise<string> {
         const entries = await this.collectTagData(files);
 
-        const headers = ['File Path', 'Tags'];
-        const rows = entries.map(entry => [
+        const headers = ["File Path", "Tags"];
+        const rows = entries.map((entry) => [
             entry.path,
-            entry.tags.join('; ')
+            entry.tags.join("; "),
         ]);
 
         const csvContent = [
-            headers.join(','),
-            ...rows.map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(','))
-        ].join('\n');
+            headers.join(","),
+            ...rows.map((row) =>
+                row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(","),
+            ),
+        ].join("\n");
 
         return csvContent;
     }
@@ -65,12 +66,16 @@ export class TagImportExport {
 
         for (const file of markdownFiles) {
             const cache = this.app.metadataCache.getFileCache(file);
-            const tags = cache?.frontmatter ? TagUtils.getExistingTags(cache.frontmatter) : [];
+            const tags = cache?.frontmatter
+                ? TagUtils.getExistingTags(cache.frontmatter)
+                : [];
 
             if (tags.length > 0) {
                 entries.push({
                     path: file.path,
-                    tags: tags.map(t => t.startsWith('#') ? t.substring(1) : t)
+                    tags: tags.map((t) =>
+                        t.startsWith("#") ? t.substring(1) : t,
+                    ),
                 });
             }
         }
@@ -81,18 +86,23 @@ export class TagImportExport {
     // Import tags from JSON
     async importFromJSON(
         jsonContent: string,
-        mode: 'merge' | 'replace',
-        tagFormat: TagFormat
+        mode: "merge" | "replace",
+        tagFormat: TagFormat,
     ): Promise<{ success: number; failed: number; skipped: number }> {
-        let data: TagExportData;
+        let parsed: unknown;
         try {
-            data = JSON.parse(jsonContent);
+            parsed = JSON.parse(jsonContent);
         } catch {
-            throw new Error('Invalid JSON format');
+            throw new Error("Invalid JSON format");
         }
 
+        if (typeof parsed !== "object" || parsed === null) {
+            throw new Error("Invalid tag export format");
+        }
+        const data = parsed as TagExportData;
+
         if (!data.entries || !Array.isArray(data.entries)) {
-            throw new Error('Invalid tag export format');
+            throw new Error("Invalid tag export format");
         }
 
         return this.applyTags(data.entries, mode, tagFormat);
@@ -101,12 +111,12 @@ export class TagImportExport {
     // Import tags from CSV
     async importFromCSV(
         csvContent: string,
-        mode: 'merge' | 'replace',
-        tagFormat: TagFormat
+        mode: "merge" | "replace",
+        tagFormat: TagFormat,
     ): Promise<{ success: number; failed: number; skipped: number }> {
-        const lines = csvContent.split('\n').filter(l => l.trim());
+        const lines = csvContent.split("\n").filter((l) => l.trim());
         if (lines.length < 2) {
-            throw new Error('CSV file is empty or has no data rows');
+            throw new Error("CSV file is empty or has no data rows");
         }
 
         // Skip header row
@@ -116,7 +126,10 @@ export class TagImportExport {
             if (parsed.length >= 2) {
                 const path = parsed[0];
                 const tagsStr = parsed[1];
-                const tags = tagsStr.split(/[;,]/).map(t => t.trim()).filter(t => t);
+                const tags = tagsStr
+                    .split(/[;,]/)
+                    .map((t) => t.trim())
+                    .filter((t) => t);
                 if (path && tags.length > 0) {
                     entries.push({ path, tags });
                 }
@@ -129,7 +142,7 @@ export class TagImportExport {
     // Parse a single CSV line handling quoted fields
     private parseCSVLine(line: string): string[] {
         const result: string[] = [];
-        let current = '';
+        let current = "";
         let inQuotes = false;
 
         for (let i = 0; i < line.length; i++) {
@@ -141,9 +154,9 @@ export class TagImportExport {
                 } else {
                     inQuotes = !inQuotes;
                 }
-            } else if (char === ',' && !inQuotes) {
+            } else if (char === "," && !inQuotes) {
                 result.push(current);
-                current = '';
+                current = "";
             } else {
                 current += char;
             }
@@ -155,8 +168,8 @@ export class TagImportExport {
     // Apply tags to files
     private async applyTags(
         entries: TagExportEntry[],
-        mode: 'merge' | 'replace',
-        tagFormat: TagFormat
+        mode: "merge" | "replace",
+        tagFormat: TagFormat,
     ): Promise<{ success: number; failed: number; skipped: number }> {
         let success = 0;
         let failed = 0;
@@ -174,14 +187,25 @@ export class TagImportExport {
                 const cache = this.app.metadataCache.getFileCache(file);
 
                 let newTags: string[];
-                if (mode === 'merge') {
+                if (mode === "merge") {
                     const existingTags = cache?.frontmatter
                         ? TagUtils.getExistingTags(cache.frontmatter)
                         : [];
                     const combined = [...existingTags, ...entry.tags];
-                    newTags = [...new Set(combined.map(t =>
-                        TagUtils.formatTags([t], false, tagFormat)[0]
-                    ).filter(Boolean))];
+                    newTags = [
+                        ...new Set(
+                            combined
+                                .map(
+                                    (t) =>
+                                        TagUtils.formatTags(
+                                            [t],
+                                            false,
+                                            tagFormat,
+                                        )[0],
+                                )
+                                .filter(Boolean),
+                        ),
+                    ];
                 } else {
                     newTags = TagUtils.formatTags(entry.tags, false, tagFormat);
                 }
@@ -193,33 +217,32 @@ export class TagImportExport {
                 if (frontmatterPosition) {
                     const frontmatterText = content.substring(
                         frontmatterPosition.start.offset + 4,
-                        frontmatterPosition.end.offset - 4
+                        frontmatterPosition.end.offset - 4,
                     );
-                    let frontmatter: any;
-                    try {
-                        frontmatter = yaml.load(frontmatterText) || {};
-                    } catch {
-                        frontmatter = {};
+                    const parsed: unknown = parseYaml(frontmatterText) ?? {};
+                    if (typeof parsed !== "object" || Array.isArray(parsed)) {
+                        throw new Error("Frontmatter must be a YAML mapping");
                     }
+                    const frontmatter = parsed as Record<string, unknown>;
                     frontmatter.tags = newTags;
-                    const newFrontmatter = yaml.dump(frontmatter).trim();
+                    const newFrontmatter = stringifyYaml(frontmatter).trim();
                     newContent =
-                        '---\n' +
+                        "---\n" +
                         newFrontmatter +
-                        '\n---' +
+                        "\n---" +
                         content.substring(frontmatterPosition.end.offset);
                 } else {
                     // No frontmatter, create one
                     const frontmatter = { tags: newTags };
-                    const newFrontmatter = yaml.dump(frontmatter).trim();
-                    newContent = '---\n' + newFrontmatter + '\n---\n' + content;
+                    const newFrontmatter = stringifyYaml(frontmatter).trim();
+                    newContent = "---\n" + newFrontmatter + "\n---\n" + content;
                 }
 
-                if (newContent !== content) {
+                if (newContent === content) {
+                    skipped++;
+                } else {
                     await this.app.vault.modify(file, newContent);
                     success++;
-                } else {
-                    skipped++;
                 }
             } catch {
                 failed++;
@@ -228,7 +251,7 @@ export class TagImportExport {
 
         // Small delay to allow file system to settle
         if (success > 0) {
-            await new Promise(resolve => setTimeout(resolve, 300));
+            await new Promise((resolve) => window.setTimeout(resolve, 300));
         }
 
         return { success, failed, skipped };
@@ -238,7 +261,7 @@ export class TagImportExport {
     downloadFile(content: string, filename: string, mimeType: string): void {
         const blob = new Blob([content], { type: mimeType });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = createEl("a");
         a.href = url;
         a.download = filename;
         a.click();

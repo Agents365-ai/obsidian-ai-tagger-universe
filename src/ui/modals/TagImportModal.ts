@@ -65,7 +65,7 @@ export class TagImportModal extends Modal {
     }
 
     private selectFile(): void {
-        const input = document.createElement('input');
+        const input = createEl('input');
         input.type = 'file';
         input.accept = '.json,.csv';
         input.onchange = async (e) => {
